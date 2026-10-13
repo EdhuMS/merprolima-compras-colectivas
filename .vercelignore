@@ -1,6 +1,9 @@
-.git/
-node_modules/
-docs/
-supabase/
+/.git/
+/node_modules/
+/docs/
+/supabase/
+/dist/
+/.openai/
 *.py
 .env*
+*.tsbuildinfo
