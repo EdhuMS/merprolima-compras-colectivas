@@ -2,6 +2,8 @@
 
 MVP académico APF2, Grupo 8. Entrega 14/10/2026.
 
+**Demo desplegada en Vercel:** [Abrir Merprolima compras colectivas](https://merprolima-compras-colectivas.vercel.app/).
+
 Demo pública con datos simulados y modo piloto conectado a Supabase. Registrar necesidades, agrupar cantidades compatibles, comparar costo total y confirmar participación no acredita una compra o entrevista realizada.
 
 ## Ejecutar y verificar
