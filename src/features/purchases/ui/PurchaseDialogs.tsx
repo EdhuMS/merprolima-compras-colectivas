@@ -24,6 +24,7 @@ type Props = {
   formOpen: boolean;
   setFormOpen: (v: boolean) => void;
   editing?: Need;
+  needRequestId?: string;
   isDemo: boolean;
   form: UseFormReturn<NeedInput>;
   quoteForm: UseFormReturn<QuoteInput>;
@@ -48,6 +49,7 @@ export function PurchaseDialogs({
   formOpen,
   setFormOpen,
   editing,
+  needRequestId,
   isDemo,
   form,
   quoteForm,
@@ -84,7 +86,7 @@ export function PurchaseDialogs({
           onSubmit={form.handleSubmit(async (input) => {
             try {
               await mutate.mutateAsync(() =>
-                repository.saveNeed(input, stall, editing?.id),
+                repository.saveNeed(input, stall, needRequestId),
               );
               setFormOpen(false);
             } catch {
@@ -181,7 +183,7 @@ export function PurchaseDialogs({
                 <strong>{cmp?.qty ?? 0} sacos</strong>
               </div>
               <div>
-                <small>Fecha propuesta</small>
+                <small>Fecha deseada de reposición</small>
                 <strong>{dateLabel(selected.date)}</strong>
               </div>
               <div>
@@ -233,8 +235,25 @@ export function PurchaseDialogs({
               <p className="flex gap-2">
                 <Truck size={17} />
                 {selected.quote
-                  ? "Entrega propuesta, pendiente de acuerdo real."
+                  ? selected.quote.deliveryEstimate
+                    ? `Fecha estimada del proveedor: ${dateLabel(selected.quote.deliveryEstimate)} (sujeta a acuerdo).`
+                    : "Fecha del proveedor por definir."
                   : "Fecha de entrega por definir."}
+              </p>
+              <p>
+                Tipo de evidencia:{" "}
+                {
+                  {
+                    written_quote: "Cotización escrita",
+                    price_list: "Lista de precios",
+                    verbal: "Declaración verbal",
+                    simulated: "Simulación",
+                    unclassified: "Por clasificar",
+                  }[
+                    selected.quote?.evidenceType ??
+                      (isDemo ? "simulated" : "unclassified")
+                  ]
+                }
               </p>
               <p>
                 {selected.quote?.payment ?? "Condiciones de pago por definir."}
@@ -254,6 +273,11 @@ export function PurchaseDialogs({
                 <Pencil size={15} />
                 {selected.quote ? "Editar cotización" : "Registrar cotización"}
               </Button>
+            )}
+            {mutate.error && (
+              <p role="alert" className="error mt-4">
+                {mutate.error.message}
+              </p>
             )}
             <div className="flex gap-3 mt-6">
               <Button
@@ -280,8 +304,10 @@ export function PurchaseDialogs({
               </Button>
             </div>
             <p className="mt-4 text-xs muted">
-              Confirmación simulada. No genera una orden, pago ni compromiso con
-              un proveedor.
+              {isDemo
+                ? "Confirmación simulada."
+                : "Registro de participación en el piloto."}{" "}
+              No genera una orden, pago ni compromiso con un proveedor.
             </p>
           </div>
         )}
@@ -332,7 +358,17 @@ export function PurchaseDialogs({
                 <input
                   type="number"
                   step={f.key === "min" ? "1" : "0.01"}
-                  {...quoteForm.register(f.key, { valueAsNumber: true })}
+                  {...quoteForm.register(f.key, {
+                    setValueAs: (v) =>
+                      v === "" &&
+                      [
+                        "transport",
+                        "distribution",
+                        "individualTransport",
+                      ].includes(f.key)
+                        ? null
+                        : Number(v),
+                  })}
                 />
                 {quoteForm.formState.errors[f.key] && (
                   <small className="error">Ingresa un valor válido</small>
@@ -345,6 +381,38 @@ export function PurchaseDialogs({
               {mutate.error.message}
             </p>
           )}
+          <p className="text-sm muted">
+            Deja vacío un gasto desconocido. Cero significa que está confirmado
+            sin costo. No se podrá confirmar con gastos por definir.
+          </p>
+          <label>
+            Tipo de evidencia
+            <select {...quoteForm.register("evidenceType")}>
+              {isDemo ? (
+                <option value="simulated">Simulación</option>
+              ) : (
+                <>
+                  <option value="unclassified">Selecciona el tipo</option>
+                  <option value="written_quote">Cotización escrita</option>
+                  <option value="price_list">Lista de precios</option>
+                  <option value="verbal">Declaración verbal</option>
+                </>
+              )}
+            </select>
+          </label>
+          <label>
+            Fecha estimada por el proveedor (opcional)
+            <input
+              type="date"
+              {...quoteForm.register("deliveryEstimate", {
+                setValueAs: (v) => v || null,
+              })}
+            />
+            <small>
+              No sustituye la fecha deseada de reposición ni acredita una
+              entrega.
+            </small>
+          </label>
           <label>
             Proveedor o código
             <input required={!isDemo} {...quoteForm.register("supplier")} />

@@ -40,9 +40,19 @@ export class LocalDemoRepository implements PurchaseRepository {
     needSchema.parse(input);
     const s = await this.read();
     if (id) {
+      if (s.needs.some((n) => n.id === id && n.stall !== stall))
+        throw new Error("No puedes editar otro puesto");
       const n = s.needs.find((n) => n.id === id && n.stall === stall);
-      if (!n) throw new Error("No se encontró tu necesidad");
-      Object.assign(n, input);
+      if (n) Object.assign(n, input);
+      else
+        s.needs.push({
+          ...input,
+          id,
+          stall,
+          status: "open",
+          origin: "simulated",
+          createdAt: new Date().toISOString(),
+        });
     } else {
       s.needs.push({
         ...input,
@@ -97,12 +107,24 @@ export class LocalDemoRepository implements PurchaseRepository {
     quoteSchema.parse(input);
     const s = await this.read();
     const group = groupNeeds(s, products).find((g) => g.key === groupKey);
-    if (!group?.quote) throw new Error("Cotización no encontrada");
-    Object.assign(
-      s.quotes.find((q) => q.id === group.quote!.id)!,
-      input,
-      { version: group.quote.version + 1 },
-    );
+    if (!group) throw new Error("Grupo no encontrado");
+    if (!group.quote) {
+      s.quotes.push({
+        ...input,
+        id: crypto.randomUUID(),
+        productId: group.product.id,
+        supplier: input.supplier ?? "DEMO-PROVEEDOR",
+        date: group.date,
+        mode: group.mode,
+        version: 1,
+        origin: "simulated",
+      });
+      this.write(s);
+      return;
+    }
+    Object.assign(s.quotes.find((q) => q.id === group.quote!.id)!, input, {
+      version: group.quote.version + 1,
+    });
     this.write(s);
   }
   async reset() {

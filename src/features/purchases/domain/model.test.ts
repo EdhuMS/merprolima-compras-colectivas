@@ -100,6 +100,8 @@ describe("Persistencia demo", () => {
       individualTransport: 0,
       validUntil: "2099-01-01",
       payment: "Pago directo",
+      evidenceType: "simulated",
+      deliveryEstimate: null,
     });
     const next = await r.read();
     expect(next.participations[0].signature).not.toBe(

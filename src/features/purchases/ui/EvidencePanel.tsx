@@ -1,14 +1,39 @@
+import { useState } from "react";
+import { validatePeriod, type ExportPeriod } from "../domain/export";
+import { PrivacyNotice } from "../../privacy/ui/PrivacyNotice";
 import { FlaskConical, Download, ArrowUpRight } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 export function EvidencePanel({
   isDemo,
   exportData,
   onReset,
+  canExportAnalytical,
+  origin,
 }: {
   isDemo: boolean;
-  exportData: () => void;
+  exportData: (period: ExportPeriod, analytical?: boolean) => Promise<void>;
+  canExportAnalytical: boolean;
+  origin: "real" | "simulated";
   onReset: () => void;
 }) {
+  const [period, setPeriod] = useState<ExportPeriod>({
+    from: "2026-10-01",
+    to: "2026-10-31",
+  });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const runExport = async (analytical = false) => {
+    try {
+      setError("");
+      validatePeriod(period);
+      setBusy(true);
+      await exportData(period, analytical);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo exportar");
+    } finally {
+      setBusy(false);
+    }
+  };
   return (
     <div className="evidence-grid">
       <section className="white-panel">
@@ -41,11 +66,50 @@ export function EvidencePanel({
           <span>Entrevistas y cotizaciones</span>
           <strong>Pendientes de campo</strong>
         </div>
+        <div className="form mt-5">
+          <p>
+            Periodo por fecha deseada de reposición. La exportación omite
+            contactos y texto libre.
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            <label>
+              Desde
+              <input
+                type="date"
+                value={period.from}
+                onChange={(e) => setPeriod({ ...period, from: e.target.value })}
+              />
+            </label>
+            <label>
+              Hasta
+              <input
+                type="date"
+                value={period.to}
+                onChange={(e) => setPeriod({ ...period, to: e.target.value })}
+              />
+            </label>
+          </div>
+          {error && (
+            <p role="alert" className="error">
+              {error}
+            </p>
+          )}
+        </div>
         <div className="flex flex-wrap gap-3 mt-6">
-          <Button variant="outline" onClick={exportData}>
+          <Button variant="outline" disabled={busy} onClick={() => runExport()}>
             <Download size={16} />
             Exportar datos {isDemo ? "demo" : "del piloto"}
           </Button>
+          {canExportAnalytical && (
+            <Button
+              disabled={busy}
+              variant="outline"
+              onClick={() => runExport(true)}
+            >
+              Exportar análisis del mercado (
+              {origin === "real" ? "real" : "simulado"})
+            </Button>
+          )}
           <Button variant="ghost" disabled={!isDemo} onClick={onReset}>
             Restablecer demo
           </Button>
@@ -88,8 +152,9 @@ export function EvidencePanel({
         <p className="muted text-sm leading-6 mt-2">
           Conservar el producto y presentación exactos, registrar la fuente y su
           permiso, y capturar precios, mínimos y gastos. Los datos reales se
-          cargarán en un entorno separado después de conectar Supabase.
+          cargarán en el piloto de Supabase después de verificar su procedencia.
         </p>
+        <PrivacyNotice />
       </section>
     </div>
   );

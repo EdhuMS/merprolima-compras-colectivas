@@ -23,15 +23,19 @@ Variables publicables: VITE_SUPABASE_URL y VITE_SUPABASE_PUBLISHABLE_KEY, config
 
 ## Documentación
 
-- docs/definicion-apf2.md y docs/contrato-datos.md: definición y contrato preliminares.
+- docs/definicion-apf2.md y docs/contrato-datos.md: definición y contrato implementado actualizado.
 - docs/control-evidencia.md y docs/investigacion-simulacion.md: evidencia pendiente y supuestos públicos.
 - docs/arquitectura-piloto.md: capas, permisos y habilitación de cuentas.
 - docs/validacion-supabase-vercel.md: verificación de base de datos e interfaz.
 
 ## Estado operativo
 
-Las migraciones están aplicadas y los permisos probados con actores ficticios dentro de una transacción revertida. No existen usuarios reales, puestos reales o cotizaciones en esta revisión. Crear las cuentas piloto en Supabase Auth y asignar membresía antes de registrar datos de campo. El modo piloto no se ha probado con una sesión real desde navegador todavía.
+Las migraciones están aplicadas y los permisos probados con actores ficticios dentro de una transacción revertida. Existe una cuenta coordinadora activa. No hay necesidades, cotizaciones ni participaciones reales al corte. Crear las cuentas piloto en Supabase Auth y asignar membresía antes de registrar datos de campo. El modo piloto no se ha probado con una sesión real desde navegador todavía.
 
 ## Vercel
 
 Proyecto merprolima-compras-colectivas de edhumss-projects vinculado mediante CLI. Publicación en producción con vercel deploy --prod. La demo anterior de Sites sigue disponible como versión inicial.
+
+## Cierre del 13/10/2026
+
+20 pruebas pasaron. Cotizaciones con tipo de evidencia y gastos null, fecha estimada del proveedor y exportación por periodo/analítica disponibles. Historial de necesidades desde la nueva migración. Ver docs/estado-mvp.md, docs/tablero-kanban.md, docs/validacion-cierre-apf2.md y docs/privacidad-piloto.md.

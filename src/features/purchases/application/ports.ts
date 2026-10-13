@@ -1,3 +1,4 @@
+import type { ExportPeriod } from "../domain/export";
 import type { Store, NeedInput, QuoteInput, Product } from "../domain/model";
 export interface PurchaseRepository {
   read(): Promise<Store>;
@@ -10,6 +11,7 @@ export interface PurchaseRepository {
   ): Promise<void>;
   updateQuote(groupKey: string, input: QuoteInput): Promise<void>;
   reset?(): Promise<void>;
+  exportAnalytical?(period: ExportPeriod): Promise<unknown>;
   createProduct?(
     product: Omit<Product, "id"> & { sourceRef: string },
   ): Promise<void>;

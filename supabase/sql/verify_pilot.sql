@@ -14,10 +14,12 @@ begin
  perform set_config('request.jwt.claim.sub',t.coordinator::text,true);
  product:=(public.purchase_api('create_product','{"name":"Arroz prueba","brand":"Marca prueba","kg":49,"category":"Arroz","sourceRef":"TEST-SIMULATED"}'::jsonb)->>'id')::uuid;
  perform public.purchase_api('save_need',jsonb_build_object('id',t.need_b,'productId',product,'qty',5,'date',d,'mode','delivery','sourceRef','TEST-SIMULATED'));
- perform public.purchase_api('quote',jsonb_build_object('productId',product,'date',d,'mode','delivery','individual',185,'collective',179,'min',8,'transport',16,'distribution',8,'individualTransport',0,'validUntil',now()+interval '7 days','payment','Pago directo de prueba','supplier','TEST','sourceRef','TEST-SIMULATED'));
+ perform public.purchase_api('quote',jsonb_build_object('productId',product,'date',d,'mode','delivery','individual',185,'collective',179,'min',8,'transport',16,'distribution',8,'individualTransport',0,'validUntil',now()+interval '7 days','payment','Pago directo de prueba','supplier','TEST','sourceRef','TEST-SIMULATED','evidenceType','simulated','deliveryEstimate',d));
  perform set_config('request.jwt.claim.sub',t.buyer::text,true);
  begin perform public.purchase_api('create_product','{"name":"Forbidden"}'); raise exception 'TEST FAILED: buyer creates catalog'; exception when insufficient_privilege then null; end;
  perform public.purchase_api('save_need',jsonb_build_object('id',t.need_a,'productId',product,'qty',3,'date',d,'mode','delivery','sourceRef','TEST-SIMULATED'));
+ perform public.purchase_api('save_need',jsonb_build_object('id',t.need_a,'productId',product,'qty',3,'date',d,'mode','delivery','sourceRef','TEST-SIMULATED'));
+ begin perform public.purchase_api('export_analytical',jsonb_build_object('from',d,'to',d)); raise exception 'TEST FAILED: buyer analytic access'; exception when insufficient_privilege then null; end;
  snapshot:=public.purchase_api('read');
  if (select count(*) from public.memberships)<>1 then raise exception 'TEST FAILED: membership privacy'; end if;
  if jsonb_array_length(snapshot->'needs')<>2 then raise exception 'TEST FAILED: aggregate records'; end if;
@@ -31,6 +33,17 @@ begin
  if jsonb_array_length(snapshot->'participations')<>1 then raise exception 'TEST FAILED: duplicate confirmation'; end if;
  begin perform public.purchase_api('withdraw',jsonb_build_object('id',t.need_b)); raise exception 'TEST FAILED: cross-stall withdrawal'; exception when raise_exception then if sqlerrm like 'TEST FAILED:%' then raise; end if; end;
  perform set_config('request.jwt.claim.sub',t.coordinator::text,true);
+ snapshot:=public.purchase_api('export_analytical',jsonb_build_object('from',d,'to',d));
+ if (snapshot->'weekly_needs'->0->>'requested_package_qty')::integer<>8 then raise exception 'TEST FAILED: weekly quantity/idempotent need'; end if;
+ if jsonb_array_length(snapshot->'need_revisions')<>2 then raise exception 'TEST FAILED: revision history'; end if;
+ if snapshot::text like '%TEST-A%' or snapshot::text like '%TEST-SIMULATED%' then raise exception 'TEST FAILED: analytic free text disclosure'; end if;
+ perform public.purchase_api('quote',jsonb_build_object('productId',product,'date',d,'mode','delivery','individual',185,'collective',179,'min',8,'transport',null,'distribution',8,'individualTransport',0,'validUntil',now()+interval '7 days','payment','Pago directo de prueba','supplier','TEST','sourceRef','TEST-SIMULATED','evidenceType','simulated','deliveryEstimate',d,'expectedVersion',1));
+ perform set_config('request.jwt.claim.sub',t.buyer::text,true);
+ snapshot:=public.purchase_api('read'); expected:=snapshot->'groupVersions'->>groupkey;
+ if snapshot->'quotes'->0->>'transport' is not null then raise exception 'TEST FAILED: null changed to zero'; end if;
+ if snapshot->'quotes'->0->>'deliveryEstimate'<>d then raise exception 'TEST FAILED: delivery estimate'; end if;
+ begin perform public.purchase_api('decide',jsonb_build_object('productId',product,'date',d,'mode','delivery','decision','confirmed','expectedSignature',expected)); raise exception 'TEST FAILED: unknown cost accepted'; exception when raise_exception then if sqlerrm like 'TEST FAILED:%' then raise; end if; end;
+ perform set_config('request.jwt.claim.sub',t.coordinator::text,true);
  perform public.purchase_api('withdraw',jsonb_build_object('id',t.need_b));
  perform set_config('request.jwt.claim.sub',t.buyer::text,true);
  begin perform public.purchase_api('decide',jsonb_build_object('productId',product,'date',d,'mode','delivery','decision','confirmed','expectedSignature',expected)); raise exception 'TEST FAILED: stale signature'; exception when raise_exception then if sqlerrm like 'TEST FAILED:%' then raise; end if; end;
@@ -43,4 +56,4 @@ do $$ begin
  if has_table_privilege('authenticated','public.needs','INSERT') then raise exception 'TEST FAILED: direct write'; end if;
 end $$;
 rollback;
-select 'PASSED: authorization, privacy, freight, idempotence, stale signature and minimum volume; rolled back' as result;
+select 'PASSED: authorization, privacy, freight, idempotence, stale signature and minimum volume, null expenses, delivery evidence, analytic role and revision history; rolled back' as result;

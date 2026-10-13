@@ -1,6 +1,8 @@
 import { useState, type ReactNode } from "react";
 import { usePurchases } from "../application/usePurchases";
 import type { PurchaseRepository } from "../application/ports";
+import { createSnapshotExport, type ExportPeriod } from "../domain/export";
+import { downloadJson } from "../../../lib/download";
 import { EvidencePanel } from "./EvidencePanel";
 import { GroupCard } from "./GroupCard";
 import { CatalogManager } from "./CatalogManager";
@@ -66,6 +68,7 @@ export function App({
   const [demoRole, setRole] = useState("buyer");
   const [mobile, setMobile] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
+  const [needRequestId, setNeedRequestId] = useState<string>();
   const [editing, setEditing] = useState<Need>();
   const [detail, setDetail] = useState<string>();
   const [quoteOpen, setQuoteOpen] = useState(false);
@@ -110,6 +113,8 @@ export function App({
     ).length ?? 0;
   const openForm = (need?: Need) => {
     setEditing(need);
+    setNeedRequestId(need?.id ?? crypto.randomUUID());
+    mutate.reset();
     form.reset(
       need
         ? {
@@ -134,9 +139,11 @@ export function App({
       individual: 1,
       collective: 1,
       min: 1,
-      transport: 0,
-      distribution: 0,
-      individualTransport: 0,
+      transport: null,
+      distribution: null,
+      individualTransport: null,
+      evidenceType: isDemo ? ("simulated" as const) : ("unclassified" as const),
+      deliveryEstimate: null,
       validUntil: new Date(Date.now() + 86400000).toISOString(),
       payment: "",
       supplier: "",
@@ -146,45 +153,30 @@ export function App({
       individual: q.individual,
       collective: q.collective,
       min: q.min,
-      transport: q.transport ?? 0,
-      distribution: q.distribution ?? 0,
-      individualTransport: q.individualTransport ?? 0,
+      transport: q.transport,
+      distribution: q.distribution,
+      individualTransport: q.individualTransport,
       validUntil: new Date(q.validUntil).toLocaleDateString("en-CA", {
         timeZone: "America/Lima",
       }),
       payment: q.payment,
       sourceRef: q.sourceRef ?? "",
       supplier: q.supplier,
+      evidenceType: q.evidenceType ?? (isDemo ? "simulated" : "unclassified"),
+      deliveryEstimate: q.deliveryEstimate ?? null,
     });
     setQuoteOpen(true);
   };
-  const exportData = () => {
+  const exportData = async (period: ExportPeriod, analytical = false) => {
     if (!query.data) return;
-    const blob = new Blob(
-      [
-        JSON.stringify(
-          {
-            ...query.data,
-            data_origin: isDemo ? "simulated" : query.data.identity?.origin,
-            exported_at: new Date().toISOString(),
-            note: isDemo
-              ? "Datos ficticios. No son entrevistas ni cotizaciones de Merprolima."
-              : "Exportación del piloto con agregados de otros puestos y registros propios. La procedencia depende de la captura.",
-          },
-          null,
-          2,
-        ),
-      ],
-      { type: "application/json" },
+    const data =
+      analytical && repository.exportAnalytical
+        ? await repository.exportAnalytical(period)
+        : createSnapshotExport({ ...query.data, products }, period, isDemo);
+    downloadJson(
+      data,
+      `merprolima-${isDemo ? "simulado" : "piloto"}-${analytical ? "analitico" : "personal"}.json`,
     );
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = isDemo
-      ? "merprolima-demo-simulado.json"
-      : "merprolima-piloto.json";
-    a.click();
-    URL.revokeObjectURL(url);
   };
   const status = (g: Group) => {
     const c = comparison(g, stall);
@@ -634,6 +626,8 @@ export function App({
                 <EvidencePanel
                   isDemo={isDemo}
                   exportData={exportData}
+                  canExportAnalytical={!isDemo && role === "coordinator"}
+                  origin={query.data?.identity?.origin ?? "simulated"}
                   onReset={() => setResetOpen(true)}
                 />
               )}
@@ -649,6 +643,7 @@ export function App({
         formOpen={formOpen}
         setFormOpen={setFormOpen}
         editing={editing}
+        needRequestId={needRequestId}
         isDemo={isDemo}
         form={form}
         quoteForm={quoteForm}

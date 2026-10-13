@@ -24,6 +24,13 @@ export type Quote = {
   id: string;
   productId: string;
   supplier: string;
+  evidenceType?:
+    | "written_quote"
+    | "price_list"
+    | "verbal"
+    | "simulated"
+    | "unclassified";
+  deliveryEstimate?: string | null;
   individual: number;
   collective: number;
   min: number;
@@ -93,10 +100,24 @@ export const quoteSchema = z.object({
   individual: z.number().positive(),
   collective: z.number().positive(),
   min: z.number().int().positive(),
-  transport: z.number().nonnegative(),
-  distribution: z.number().nonnegative(),
-  individualTransport: z.number().nonnegative(),
-  validUntil: z.string().min(1),
+  transport: z.number().nonnegative().nullable(),
+  distribution: z.number().nonnegative().nullable(),
+  individualTransport: z.number().nonnegative().nullable(),
+  validUntil: z
+    .string()
+    .min(1)
+    .refine((v) => !Number.isNaN(Date.parse(v)), "Indica una vigencia válida"),
+  evidenceType: z.enum([
+    "written_quote",
+    "price_list",
+    "verbal",
+    "simulated",
+    "unclassified",
+  ]),
+  deliveryEstimate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .nullable(),
   payment: z.string().min(5),
   sourceRef: z.string().optional(),
   supplier: z.string().optional(),

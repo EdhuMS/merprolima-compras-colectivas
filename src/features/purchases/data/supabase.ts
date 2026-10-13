@@ -9,6 +9,7 @@ import {
   type QuoteInput,
   type Product,
 } from "../domain/model";
+import type { ExportPeriod } from "../domain/export";
 import type { PurchaseRepository } from "../application/ports";
 export class SupabasePurchaseRepository implements PurchaseRepository {
   private snapshot: Store | null = null;
@@ -59,6 +60,12 @@ export class SupabasePurchaseRepository implements PurchaseRepository {
     quoteSchema.parse(input);
     if (!input.sourceRef?.trim() || !input.supplier?.trim())
       throw new Error("Indica proveedor y fuente de la cotización");
+    if (
+      !["written_quote", "price_list", "verbal", "simulated"].includes(
+        input.evidenceType,
+      )
+    )
+      throw new Error("Selecciona un tipo de evidencia");
     const g = this.currentGroup(groupKey);
     await this.call("quote", {
       ...input,
@@ -70,6 +77,9 @@ export class SupabasePurchaseRepository implements PurchaseRepository {
   }
   async createProduct(product: Omit<Product, "id"> & { sourceRef: string }) {
     await this.call("create_product", product);
+  }
+  async exportAnalytical(period: ExportPeriod) {
+    return this.call("export_analytical", period);
   }
   private currentGroup(key: string) {
     if (!this.snapshot) throw new Error("Recarga los datos antes de continuar");
