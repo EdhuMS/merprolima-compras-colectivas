@@ -9,3 +9,4 @@ Realizada por el agente durante implementación. No es una prueba con comerciant
 - Navegador: cantidad cero bloqueada, fecha pasada muestra error, registro válido agrega cantidad e invalida confirmación anterior.
 - Revisión visual en 390 x 844 y 1440 x 1000: formulario y pantallas legibles. Se corrigió insignia superior que ocupaba espacio en móvil.
 - Pendientes: Supabase, autenticación/RLS reales, concurrencia entre dispositivos, prueba de error de red real y validación con comerciante.
+- Navegador: edición de cotización recalcula costo y mantiene requerimiento de reconfirmación. Se corrigió edición de vigencia para conservar la fecha local de Lima.
