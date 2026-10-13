@@ -30,3 +30,7 @@ No se han creado cuentas, comerciantes o entrevistas ficticias en el entorno rea
 Alojamiento del proyecto: Vercel, vinculado por CLI a edhumss-projects/merprolima-compras-colectivas. Variables de producción y preview: VITE_SUPABASE_URL y VITE_SUPABASE_PUBLISHABLE_KEY. Las variables son publicables por diseño y no autorizan acceso a datos sin sesión y membresía. No almacenar credenciales de base de datos en VITE_.
 
 El enlace anterior de Sites conserva la demo inicial; Vercel será la versión que incorpora el piloto. La fuente sigue en el repositorio privado. Revisar esta guía al ampliar para APF3; no añadir FastAPI sin necesidad del componente ML.
+
+Las cuentas aprobadas también pueden preautorizarse mediante private.pilot_account_grants desde administración. Una función de trigger en esquema privado las asigna al confirmar el correo, consume la autorización y no concede ningún rol a correos no aprobados. No se permite acceso de la aplicación a esa tabla.
+
+Producción Vercel: https://merprolima-compras-colectivas.vercel.app. HTTP público verificado y Supabase no permite llamadas de piloto sin autenticación. Primer coordinador preparado; contraseña y creación de cuenta requieren acción del usuario en Supabase Auth.
