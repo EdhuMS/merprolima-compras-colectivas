@@ -1,0 +1,46 @@
+begin;
+create temporary table test_context as select gen_random_uuid() buyer,gen_random_uuid() coordinator,gen_random_uuid() unassigned,gen_random_uuid() stall_a,gen_random_uuid() stall_b,gen_random_uuid() need_a,gen_random_uuid() need_b;
+grant select on test_context to authenticated;
+insert into auth.users(id,aud,role) select buyer,'authenticated','authenticated' from test_context union all select coordinator,'authenticated','authenticated' from test_context union all select unassigned,'authenticated','authenticated' from test_context;
+insert into public.stalls(id,market_id,code,origin) select stall_a,(select id from public.markets where name='Merprolima'),'TEST-A','simulated' from test_context union all select stall_b,(select id from public.markets where name='Merprolima'),'TEST-B','simulated' from test_context;
+insert into public.memberships(user_id,stall_id,role) select buyer,stall_a,'buyer' from test_context union all select coordinator,stall_b,'coordinator' from test_context;
+set local role authenticated;
+do $$
+declare t record; product uuid; d text:=((now() at time zone 'America/Lima')::date+3)::text; snapshot jsonb; expected text; groupkey text;
+begin
+ select * into t from test_context;
+ perform set_config('request.jwt.claim.sub',t.unassigned::text,true);
+ begin perform public.purchase_api('read'); raise exception 'TEST FAILED: unassigned access'; exception when insufficient_privilege then null; end;
+ perform set_config('request.jwt.claim.sub',t.coordinator::text,true);
+ product:=(public.purchase_api('create_product','{"name":"Arroz prueba","brand":"Marca prueba","kg":49,"category":"Arroz","sourceRef":"TEST-SIMULATED"}'::jsonb)->>'id')::uuid;
+ perform public.purchase_api('save_need',jsonb_build_object('id',t.need_b,'productId',product,'qty',5,'date',d,'mode','delivery','sourceRef','TEST-SIMULATED'));
+ perform public.purchase_api('quote',jsonb_build_object('productId',product,'date',d,'mode','delivery','individual',185,'collective',179,'min',8,'transport',16,'distribution',8,'individualTransport',0,'validUntil',now()+interval '7 days','payment','Pago directo de prueba','supplier','TEST','sourceRef','TEST-SIMULATED'));
+ perform set_config('request.jwt.claim.sub',t.buyer::text,true);
+ begin perform public.purchase_api('create_product','{"name":"Forbidden"}'); raise exception 'TEST FAILED: buyer creates catalog'; exception when insufficient_privilege then null; end;
+ perform public.purchase_api('save_need',jsonb_build_object('id',t.need_a,'productId',product,'qty',3,'date',d,'mode','delivery','sourceRef','TEST-SIMULATED'));
+ snapshot:=public.purchase_api('read');
+ if (select count(*) from public.memberships)<>1 then raise exception 'TEST FAILED: membership privacy'; end if;
+ if jsonb_array_length(snapshot->'needs')<>2 then raise exception 'TEST FAILED: aggregate records'; end if;
+ if exists(select 1 from jsonb_array_elements(snapshot->'needs') n where n->>'stall'='TEST-B') then raise exception 'TEST FAILED: other stall visible'; end if;
+ groupkey:='simulated|'||product||'|'||d||'|delivery';
+ if (snapshot->'groupFreight'->>groupkey)::numeric<>9 then raise exception 'TEST FAILED: freight calculation'; end if;
+ expected:=snapshot->'groupVersions'->>groupkey;
+ perform public.purchase_api('decide',jsonb_build_object('productId',product,'date',d,'mode','delivery','decision','confirmed','expectedSignature',expected));
+ perform public.purchase_api('decide',jsonb_build_object('productId',product,'date',d,'mode','delivery','decision','confirmed','expectedSignature',expected));
+ snapshot:=public.purchase_api('read');
+ if jsonb_array_length(snapshot->'participations')<>1 then raise exception 'TEST FAILED: duplicate confirmation'; end if;
+ begin perform public.purchase_api('withdraw',jsonb_build_object('id',t.need_b)); raise exception 'TEST FAILED: cross-stall withdrawal'; exception when raise_exception then if sqlerrm like 'TEST FAILED:%' then raise; end if; end;
+ perform set_config('request.jwt.claim.sub',t.coordinator::text,true);
+ perform public.purchase_api('withdraw',jsonb_build_object('id',t.need_b));
+ perform set_config('request.jwt.claim.sub',t.buyer::text,true);
+ begin perform public.purchase_api('decide',jsonb_build_object('productId',product,'date',d,'mode','delivery','decision','confirmed','expectedSignature',expected)); raise exception 'TEST FAILED: stale signature'; exception when raise_exception then if sqlerrm like 'TEST FAILED:%' then raise; end if; end;
+ snapshot:=public.purchase_api('read');expected:=snapshot->'groupVersions'->>groupkey;
+ begin perform public.purchase_api('decide',jsonb_build_object('productId',product,'date',d,'mode','delivery','decision','confirmed','expectedSignature',expected)); raise exception 'TEST FAILED: insufficient volume'; exception when raise_exception then if sqlerrm like 'TEST FAILED:%' then raise; end if; end;
+end $$;
+reset role;
+do $$ begin
+ if has_function_privilege('anon','public.purchase_api(text,jsonb)','EXECUTE') then raise exception 'TEST FAILED: anonymous RPC'; end if;
+ if has_table_privilege('authenticated','public.needs','INSERT') then raise exception 'TEST FAILED: direct write'; end if;
+end $$;
+rollback;
+select 'PASSED: authorization, privacy, freight, idempotence, stale signature and minimum volume; rolled back' as result;

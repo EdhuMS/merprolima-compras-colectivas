@@ -6,3 +6,7 @@ dist/
 .sites/
 .openai/local*
 *.tar.gz
+.vercel
+.env*
+!.env.example
+*.tsbuildinfo

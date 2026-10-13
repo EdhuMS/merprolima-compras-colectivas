@@ -1,4 +1,94 @@
-import type { Product, Store } from '../domain/model';
-export const products: Product[] = [{ id: 'rice-extra-49', name: 'Arroz extra añejado', brand: 'Marca de prueba A', kg: 49, category: 'Arroz' }, { id: 'sugar-rubia-50', name: 'Azúcar rubia doméstica', brand: 'Marca de prueba B', kg: 50, category: 'Azúcar' }, { id: 'rice-superior-50', name: 'Arroz superior', brand: 'Marca de prueba C', kg: 50, category: 'Arroz' }];
-export const stalls = ['DEMO-01', 'DEMO-02', 'DEMO-03', 'DEMO-04'];
-export function demoSeed(): Store { const today = new Date(); const future = new Date(today.getTime() + 3 * 86400000).toLocaleDateString('en-CA', { timeZone: 'America/Lima' }); const valid = new Date(today.getTime() + 7 * 86400000).toISOString(); return { schemaVersion: 1, needs: [{ id: 'n1', stall: 'DEMO-01', productId: products[0].id, qty: 3 }, { id: 'n2', stall: 'DEMO-02', productId: products[0].id, qty: 5 }, { id: 'n3', stall: 'DEMO-03', productId: products[0].id, qty: 4 }, { id: 'n4', stall: 'DEMO-01', productId: products[1].id, qty: 2 }, { id: 'n5', stall: 'DEMO-04', productId: products[1].id, qty: 3 }, { id: 'n6', stall: 'DEMO-03', productId: products[2].id, qty: 2 }].map(n => ({ ...n, date: future, mode: 'delivery', status: 'open', origin: 'simulated', createdAt: today.toISOString() })), quotes: [{ id: 'q1', productId: products[0].id, individual: 185, collective: 179, min: 10, transport: 24, distribution: 12, individualTransport: 0 }, { id: 'q2', productId: products[1].id, individual: 144, collective: 141, min: 8, transport: 20, distribution: 10, individualTransport: 0 }, { id: 'q3', productId: products[2].id, individual: 170, collective: 168, min: 2, transport: 18, distribution: 6, individualTransport: 0 }].map(q => ({ ...q, supplier: 'Proveedor de prueba', date: future, mode: 'delivery', validUntil: valid, version: 1, origin: 'simulated', payment: 'Supuesto: cada puesto paga directamente al proveedor. Sin pagos dentro de la aplicación.' })), participations: [] }; }
+import type { Product, Store } from "../domain/model";
+export const products: Product[] = [
+  {
+    id: "rice-extra-49",
+    name: "Arroz extra añejado",
+    brand: "Marca de prueba A",
+    kg: 49,
+    category: "Arroz",
+  },
+  {
+    id: "sugar-rubia-50",
+    name: "Azúcar rubia doméstica",
+    brand: "Marca de prueba B",
+    kg: 50,
+    category: "Azúcar",
+  },
+  {
+    id: "rice-superior-50",
+    name: "Arroz superior",
+    brand: "Marca de prueba C",
+    kg: 50,
+    category: "Arroz",
+  },
+];
+export const stalls = ["DEMO-01", "DEMO-02", "DEMO-03", "DEMO-04"];
+export function demoSeed(): Store {
+  const today = new Date();
+  const future = new Date(today.getTime() + 3 * 86400000).toLocaleDateString(
+    "en-CA",
+    { timeZone: "America/Lima" },
+  );
+  const valid = new Date(today.getTime() + 7 * 86400000).toISOString();
+  return {
+    schemaVersion: 1,
+    needs: [
+      { id: "n1", stall: "DEMO-01", productId: products[0].id, qty: 3 },
+      { id: "n2", stall: "DEMO-02", productId: products[0].id, qty: 5 },
+      { id: "n3", stall: "DEMO-03", productId: products[0].id, qty: 4 },
+      { id: "n4", stall: "DEMO-01", productId: products[1].id, qty: 2 },
+      { id: "n5", stall: "DEMO-04", productId: products[1].id, qty: 3 },
+      { id: "n6", stall: "DEMO-03", productId: products[2].id, qty: 2 },
+    ].map((n) => ({
+      ...n,
+      date: future,
+      mode: "delivery",
+      status: "open",
+      origin: "simulated",
+      createdAt: today.toISOString(),
+    })),
+    quotes: [
+      {
+        id: "q1",
+        productId: products[0].id,
+        individual: 185,
+        collective: 179,
+        min: 10,
+        transport: 24,
+        distribution: 12,
+        individualTransport: 0,
+      },
+      {
+        id: "q2",
+        productId: products[1].id,
+        individual: 144,
+        collective: 141,
+        min: 8,
+        transport: 20,
+        distribution: 10,
+        individualTransport: 0,
+      },
+      {
+        id: "q3",
+        productId: products[2].id,
+        individual: 170,
+        collective: 168,
+        min: 2,
+        transport: 18,
+        distribution: 6,
+        individualTransport: 0,
+      },
+    ].map((q) => ({
+      ...q,
+      supplier: "Proveedor de prueba",
+      date: future,
+      mode: "delivery",
+      validUntil: valid,
+      version: 1,
+      origin: "simulated",
+      payment:
+        "Supuesto: cada puesto paga directamente al proveedor. Sin pagos dentro de la aplicación.",
+    })),
+    participations: [],
+  };
+}
