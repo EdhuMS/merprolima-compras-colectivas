@@ -1,3 +1,4 @@
+import { BrandLogo } from "../shared/ui/BrandLogo";
 import { FieldOverview } from "../features/field/ui/FieldOverview";
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -30,7 +31,7 @@ export function Application() {
   if (loading)
     return (
       <div className="loading-screen">
-        <img className="sumabasto-logo" src="/brand/sumabasto-logo.png" alt="Sumabasto" />
+        <BrandLogo />
         <p>Abriendo tu mercado…</p>
       </div>
     );

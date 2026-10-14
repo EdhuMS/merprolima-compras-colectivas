@@ -1304,8 +1304,13 @@ body,
 
 /* Shared product identity; the market remains workspace context. */
 .sumabasto-logo { display:block; width:240px; height:auto; max-width:100%; object-fit:contain; }
-.sumabasto-logo-sidebar { width:202px; background:#fff; border-radius:10px; padding:12px 10px; }
+.sumabasto-logo-sidebar { width:202px; background:transparent; border-radius:0; padding:0; margin:0 auto; }
 .landing-brand { display:inline-flex; align-items:center; flex-shrink:1; min-width:0; }
 .login-panel .sumabasto-logo { width:260px; }
 .loading-screen .sumabasto-logo { width:240px; margin-bottom:20px; }
 @media(max-width:480px) { .landing-header .sumabasto-logo { width:160px; } .landing-header { gap:12px; } .landing-header .button { font-size:12px; } }
+
+.brand { justify-content:center; min-height:48px; }
+.login-panel .landing-brand { display:flex; width:100%; justify-content:center; }
+.login-panel .sumabasto-logo { margin-inline:auto; }
+.sumabasto-logo { object-position:center; }
