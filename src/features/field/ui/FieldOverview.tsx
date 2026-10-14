@@ -1,3 +1,119 @@
-import { MarketReferences } from "./MarketReferences";
+import {
+  ArrowRight,
+  ShoppingBasket,
+  Wheat,
+  Leaf,
+  Users,
+  ClipboardList,
+  Truck,
+  ShieldCheck,
+} from "lucide-react";
 import { Button } from "../../../components/ui/button";
-export function FieldOverview({onPilot,onTest}:{onPilot:()=>void;onTest:()=>void}){return <main className="min-h-screen bg-[#f6f7f3] px-5 py-10 md:px-12"><div className="max-w-6xl mx-auto"><header className="flex justify-between items-center"><p className="eyebrow">MERPROLIMA · COMPRAS COLECTIVAS</p><div className="flex gap-2"><Button variant="outline" onClick={onTest}>Pruebas de testers</Button><Button onClick={onPilot}>Acceder al piloto</Button></div></header><section className="py-12"><p className="eyebrow">RESULTADOS AGREGADOS · 13 OCTUBRE 2026</p><h1 className="text-4xl md:text-5xl font-semibold mt-4 max-w-3xl">Coordinar la reposición empieza por conocer las necesidades.</h1><p className="muted mt-5 max-w-3xl leading-7">Ocho entrevistas reales a puestos de abarrotes de Merprolima. La muestra exploratoria orienta el piloto; las fichas individuales permanecen bajo acceso restringido.</p></section><section className="grid grid-cols-2 md:grid-cols-4 gap-4">{[["8 de 8","Mencionan disponibilidad"],["8 de 8","Ya reciben descuento"],["5 sí · 3 depende","Interés en probar"],["5 recogen · 3 entrega","Formas de recepción"]].map(([n,t])=><article key={t} className="white-panel"><strong className="text-2xl">{n}</strong><p className="muted mt-2">{t}</p></article>)}</section><section className="white-panel mt-6"><h2 className="text-xl font-semibold">Necesidades declaradas y próximas verificaciones</h2><p className="mt-3 leading-7">Las ocho fichas mencionan arroz y azúcar. La presentación de arroz de 50 kg está documentada en las ocho. Las cantidades son estimaciones generales y varían según las ventas de cada marca. Se precisan producto, presentación y fecha al preparar una compra. Cinco puestos recogen y tres reciben entrega; las modalidades deben mantenerse separadas.</p><p className="mt-3 leading-7">Las listas mayoristas web aportan precios documentados. Las condiciones específicas y el ahorro total permanecen por verificar. El piloto autenticado permite registrar necesidades precisas y condiciones verificadas sin generar órdenes ni pagos.</p></section><section className="white-panel mt-6"><h2 className="text-xl font-semibold">Lo que cambia con las entrevistas</h2><p className="mt-3 leading-7">La prioridad es coordinar disponibilidad y comprobar un beneficio adicional a los descuentos existentes. Tiempo aparece en cuatro respuestas, transporte en tres y precio en una. Son respuestas múltiples. El interés declarado no acredita adopción ni ahorro.</p></section><MarketReferences /><footer className="py-8 text-sm muted">Grupo 8 · UTP · Muestra por conveniencia. Fotografías y fichas: anexos académicos autorizados. Sin registros simulados en esta vista.</footer></div></main>}
+export function FieldOverview({
+  onPilot,
+  onTest,
+}: {
+  onPilot: () => void;
+  onTest: () => void;
+}) {
+  return (
+    <div className="landing">
+      <header className="landing-header">
+        <a href="#" className="landing-brand">
+          merprolima<span>.</span>
+        </a>
+        <Button variant="outline" onClick={onPilot}>
+          Ingresar a mi cuenta
+        </Button>
+      </header>
+      <main className="landing-content">
+        <section className="landing-hero">
+          <div>
+            <p className="eyebrow">MERCADO DE PRODUCTORES · LOS OLIVOS</p>
+            <h1>Las compras de tu puesto, mejor coordinadas.</h1>
+            <p className="landing-description">
+              Reúne necesidades con otros puestos, compara el costo de
+              abastecimiento y organiza la reposición en un solo lugar.
+            </p>
+            <div className="landing-actions">
+              <Button onClick={onPilot}>
+                Ingresar a la plataforma <ArrowRight size={18} />
+              </Button>
+              <Button variant="ghost" onClick={onTest}>
+                Explorar plataforma
+              </Button>
+            </div>
+            <div className="landing-detail">
+              <ShieldCheck size={18} />
+              <span>
+                Acceso por puesto · Entrega o recojo · Condiciones claras
+              </span>
+            </div>
+          </div>
+          <div className="landing-illustration">
+            <div className="illustration-heading">
+              <span className="product-icon">
+                <ShoppingBasket size={25} />
+              </span>
+              <div>
+                <p className="eyebrow">TU MERCADO</p>
+                <h2>Abastecimiento compartido</h2>
+              </div>
+            </div>
+            <div className="landing-products">
+              <div>
+                <Wheat size={45} />
+                <strong>Arroz</strong>
+                <span>Marca y presentación</span>
+              </div>
+              <div>
+                <Leaf size={45} />
+                <strong>Azúcar</strong>
+                <span>Marca y presentación</span>
+              </div>
+            </div>
+            <div className="illustration-flow">
+              <Users size={20} />
+              <span>Necesidades compatibles</span>
+              <ArrowRight size={18} />
+              <ShoppingBasket size={21} />
+            </div>
+            <p className="muted text-sm">
+              Producto, cantidad, fecha y modalidad en una misma propuesta.
+            </p>
+          </div>
+        </section>
+        <section className="landing-features" aria-label="Cómo funciona">
+          <article>
+            <ClipboardList size={24} />
+            <h2>Organiza tu reposición</h2>
+            <p>
+              Registra qué necesitas y ajusta cantidades conforme se vende cada
+              marca.
+            </p>
+          </article>
+          <article>
+            <Users size={24} />
+            <h2>Reúne volumen</h2>
+            <p>
+              Encuentra necesidades que comparten producto, fecha y forma de
+              recepción.
+            </p>
+          </article>
+          <article>
+            <Truck size={24} />
+            <h2>Compara y participa</h2>
+            <p>
+              Revisa precios, transporte y reparto antes de decidir sobre la
+              propuesta.
+            </p>
+          </article>
+        </section>
+      </main>
+      <footer className="landing-footer">
+        <strong>Merprolima · Compras colectivas</strong>
+        <span>Coordinación entre puestos de abarrotes</span>
+      </footer>
+    </div>
+  );
+}

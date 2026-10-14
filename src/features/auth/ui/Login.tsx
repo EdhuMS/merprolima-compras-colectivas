@@ -2,39 +2,51 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { requireSupabase } from "../../../infrastructure/supabase/client";
 const schema = z.object({
-  email: z.email("Ingresa un correo vÃ¡lido"),
+  email: z.email("Ingresa un correo válido"),
   password: z.string().min(8, "Usa al menos ocho caracteres"),
 });
 export function Login({ onDemo }: { onDemo: () => void }) {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
   });
   return (
-    <main className="min-h-screen grid place-items-center px-5 bg-[#f6f7f3]">
-      <section className="white-panel w-full max-w-md">
-        <p className="eyebrow">MERPROLIMA Â· PILOTO</p>
-        <h1 className="text-3xl font-semibold mt-3">Accede a tu puesto.</h1>
+    <main className="login-page">
+      <section className="white-panel login-panel">
+        <a
+          href="#"
+          className="landing-brand"
+          onClick={(event) => {
+            event.preventDefault();
+            onDemo();
+          }}
+        >
+          merprolima<span>.</span>
+        </a>
+        <h1 className="text-3xl font-semibold mt-8">Ingresa a tu puesto</h1>
         <p className="muted text-sm mt-3 leading-6">
-          Usa la cuenta habilitada para el piloto. La cuenta debe tener un
-          puesto y rol asignados por el administrador.
+          Coordina tu reposición y consulta las propuestas del mercado.
         </p>
         <form
-          className="form"
+          className="form mt-6"
           onSubmit={form.handleSubmit(async (values) => {
-            setBusy(true);
-            setMessage("");
             try {
+              setMessage("");
+              setBusy(true);
               const { error } =
                 await requireSupabase().auth.signInWithPassword(values);
               if (error) throw error;
             } catch (e) {
               setMessage(
-                e instanceof Error ? e.message : "No se pudo iniciar sesiÃ³n",
+                e instanceof Error && e.message === "Invalid login credentials"
+                  ? "Revisa tu correo y contraseña."
+                  : "No pudimos iniciar sesión. Revisa tus datos e inténtalo nuevamente.",
               );
             } finally {
               setBusy(false);
@@ -46,6 +58,7 @@ export function Login({ onDemo }: { onDemo: () => void }) {
             <input
               type="email"
               autoComplete="username"
+              placeholder="tu@correo.com"
               {...form.register("email")}
             />
             {form.formState.errors.email && (
@@ -55,12 +68,24 @@ export function Login({ onDemo }: { onDemo: () => void }) {
             )}
           </label>
           <label>
-            ContraseÃ±a
-            <input
-              type="password"
-              autoComplete="current-password"
-              {...form.register("password")}
-            />
+            Contraseña
+            <div className="password-field">
+              <input
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                {...form.register("password")}
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                aria-label={
+                  showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                }
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
+              </button>
+            </div>
             {form.formState.errors.password && (
               <small className="error">
                 {form.formState.errors.password.message}
@@ -73,16 +98,13 @@ export function Login({ onDemo }: { onDemo: () => void }) {
             </p>
           )}
           <Button type="submit" disabled={busy}>
-            {busy ? "Conectandoâ€¦" : "Iniciar sesiÃ³n"}
+            {busy ? "Ingresando…" : "Iniciar sesión"}
           </Button>
-          <Button type="button" variant="outline" onClick={onDemo}>
-            Explorar demo sin cuenta
+          <Button type="button" variant="ghost" onClick={onDemo}>
+            <ArrowLeft size={17} />
+            Volver al inicio
           </Button>
         </form>
-        <p className="text-xs muted mt-6 leading-5">
-          El registro pÃºblico estÃ¡ cerrado en la aplicaciÃ³n. Solicita al equipo
-          una cuenta del piloto. La demo utiliza Ãºnicamente datos ficticios.
-        </p>
       </section>
     </main>
   );

@@ -1,4 +1,3 @@
-import { FieldRecords } from "../features/field/ui/FieldRecords";
 import { FieldOverview } from "../features/field/ui/FieldOverview";
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -10,15 +9,75 @@ import { LocalDemoRepository } from "../features/purchases/data/repository";
 import { demoSeed, products } from "../features/purchases/data/seed";
 import { requireSupabase } from "../infrastructure/supabase/client";
 import { Button } from "../components/ui/button";
-type Mode="field"|"test"|"pilot";
-export function Application(){
- localStorage.removeItem("merprolima:demo:v1");
- const [mode,setMode]=useState<Mode>("field");const {session,loading}=useSession();const client=useQueryClient();
- const cloud=useMemo(()=>new SupabasePurchaseRepository(),[session?.user.id]);
- const tester=useMemo(()=>new LocalDemoRepository(demoSeed,products,"merprolima:testers:v2"),[]);
- const switchMode=(next:Mode)=>{client.clear();setMode(next);};
- if(mode==="field")return <FieldOverview onPilot={()=>switchMode("pilot")} onTest={()=>switchMode("test")} />;
- if(mode==="pilot"&&loading)return <p className="p-10">Comprobando sesión…</p>;
- if(mode==="pilot"&&!session)return <Login onDemo={()=>switchMode("field")} />;
- return <>{mode==="pilot"&&<FieldRecords />}<App key={`${mode}:${session?.user.id??"guest"}`} mode={mode==="test"?"demo":"pilot"} workspaceKey={mode==="test"?"tester":session!.user.id} repository={mode==="test"?tester:cloud} accountAction={<div className="flex gap-2"><Button variant="ghost" size="sm" onClick={()=>switchMode("field")}>Volver a entrevistas</Button>{mode==="pilot"&&<Button variant="outline" size="sm" onClick={async()=>{await requireSupabase().auth.signOut();client.clear();}}>Salir</Button>}</div>} /></>;
+type Mode = "home" | "workspace" | "pilot";
+export function Application() {
+  const [selected, setSelected] = useState<Mode | null>(null);
+  const { session, loading } = useSession();
+  const client = useQueryClient();
+  const cloud = useMemo(
+    () => new SupabasePurchaseRepository(),
+    [session?.user.id],
+  );
+  const local = useMemo(
+    () => new LocalDemoRepository(demoSeed, products, "merprolima:testers:v2"),
+    [],
+  );
+  const switchMode = (next: Mode) => {
+    client.clear();
+    setSelected(next);
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  };
+  if (loading)
+    return (
+      <div className="loading-screen">
+        <span className="loading-mark">m.</span>
+        <p>Abriendo tu mercado…</p>
+      </div>
+    );
+  const mode = selected ?? (session ? "pilot" : "home");
+  if (mode === "home")
+    return (
+      <FieldOverview
+        onPilot={() => switchMode("pilot")}
+        onTest={() => switchMode("workspace")}
+      />
+    );
+  if (mode === "pilot" && !session)
+    return <Login onDemo={() => switchMode("home")} />;
+  return (
+    <App
+      key={`${mode}:${session?.user.id ?? "guest"}`}
+      mode={mode === "workspace" ? "demo" : "pilot"}
+      workspaceKey={mode === "workspace" ? "tester" : session!.user.id}
+      repository={mode === "workspace" ? local : cloud}
+      accountAction={
+        <div className="account-actions">
+          <Button variant="ghost" size="sm" onClick={() => switchMode("home")}>
+            Inicio
+          </Button>
+          {mode === "pilot" ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                await requireSupabase().auth.signOut();
+                client.clear();
+                setSelected("home");
+              }}
+            >
+              Salir
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => switchMode("pilot")}
+            >
+              Ingresar
+            </Button>
+          )}
+        </div>
+      }
+    />
+  );
 }

@@ -68,7 +68,6 @@ export function PurchaseDialogs({
   openQuote,
   resetOpen,
   setResetOpen,
-  originLabel,
 }: Props) {
   return (
     <>
@@ -76,11 +75,7 @@ export function PurchaseDialogs({
         open={formOpen}
         onOpenChange={setFormOpen}
         title={editing ? "Editar necesidad" : "Nueva necesidad"}
-        description={
-          isDemo
-            ? "Registra una reposición de prueba. Esto no confirma una compra."
-            : "Registra una necesidad con su fuente. Esto no confirma una compra."
-        }
+        description="Elige el producto, la cantidad y cuándo necesitas reponerlo."
       >
         <form
           onSubmit={form.handleSubmit(async (input) => {
@@ -169,7 +164,7 @@ export function PurchaseDialogs({
         open={!!selected && !quoteOpen}
         onOpenChange={(v) => !v && setDetail(undefined)}
         title={selected?.product.name ?? ""}
-        description={`${selected?.product.brand ?? ""} · Saco de ${selected?.product.kg ?? ""} kg · Propuesta ${originLabel}`}
+        description={`${selected?.product.brand ?? ""} · Saco de ${selected?.product.kg ?? ""} kg`}
       >
         {selected && (
           <div className="mt-6">
@@ -241,25 +236,12 @@ export function PurchaseDialogs({
                   : "Fecha de entrega por definir."}
               </p>
               <p>
-                Tipo de evidencia:{" "}
-                {
-                  {
-                    written_quote: "Cotización escrita",
-                    price_list: "Lista de precios",
-                    verbal: "Declaración verbal",
-                    simulated: "Simulación",
-                    unclassified: "Por clasificar",
-                  }[
-                    selected.quote?.evidenceType ??
-                      (isDemo ? "simulated" : "unclassified")
-                  ]
-                }
+                {isDemo
+                  ? "Forma de pago por acordar"
+                  : (selected.quote?.payment ?? "Forma de pago por acordar")}
               </p>
               <p>
-                {selected.quote?.payment ?? "Condiciones de pago por definir."}
-              </p>
-              <p>
-                Vigencia {isDemo ? "simulada" : "cotizada"}:{" "}
+                Vigencia:{" "}
                 {selected.quote
                   ? new Date(selected.quote.validUntil).toLocaleDateString(
                       "es-PE",
@@ -303,24 +285,14 @@ export function PurchaseDialogs({
                 Rechazar
               </Button>
             </div>
-            <p className="mt-4 text-xs muted">
-              {isDemo
-                ? "Confirmación simulada."
-                : "Registro de participación en el piloto."}{" "}
-              No genera una orden, pago ni compromiso con un proveedor.
-            </p>
           </div>
         )}
       </Modal>
       <Modal
         open={quoteOpen}
         onOpenChange={setQuoteOpen}
-        title={isDemo ? "Cotización de prueba" : "Cotización del piloto"}
-        description={
-          isDemo
-            ? "Condiciones ficticias. Cambiarlas exige confirmar nuevamente la propuesta."
-            : "Registra condiciones y fuente comprobables. Un cambio exige volver a confirmar."
-        }
+        title="Condiciones de la propuesta"
+        description="Actualiza precios y gastos. Los cambios requieren volver a confirmar la participación."
       >
         <form
           className="form"
@@ -385,21 +357,25 @@ export function PurchaseDialogs({
             Deja vacío un gasto desconocido. Cero significa que está confirmado
             sin costo. No se podrá confirmar con gastos por definir.
           </p>
-          <label>
-            Tipo de evidencia
-            <select {...quoteForm.register("evidenceType")}>
-              {isDemo ? (
-                <option value="simulated">Simulación</option>
-              ) : (
-                <>
-                  <option value="unclassified">Selecciona el tipo</option>
-                  <option value="written_quote">Cotización escrita</option>
-                  <option value="price_list">Lista de precios</option>
-                  <option value="verbal">Declaración verbal</option>
-                </>
-              )}
-            </select>
-          </label>
+          {!isDemo && (
+            <>
+              <label>
+                Documento de respaldo
+                <select {...quoteForm.register("evidenceType")}>
+                  {isDemo ? (
+                    <option value="simulated">Simulación</option>
+                  ) : (
+                    <>
+                      <option value="unclassified">Selecciona el tipo</option>
+                      <option value="written_quote">Cotización escrita</option>
+                      <option value="price_list">Lista de precios</option>
+                      <option value="verbal">Declaración verbal</option>
+                    </>
+                  )}
+                </select>
+              </label>
+            </>
+          )}
           <label>
             Fecha estimada por el proveedor (opcional)
             <input
@@ -408,19 +384,18 @@ export function PurchaseDialogs({
                 setValueAs: (v) => v || null,
               })}
             />
-            <small>
-              No sustituye la fecha deseada de reposición ni acredita una
-              entrega.
-            </small>
+            <small>Fecha que propone el proveedor para la entrega.</small>
           </label>
           <label>
             Proveedor o código
             <input required={!isDemo} {...quoteForm.register("supplier")} />
           </label>
-          <label>
-            Fuente o código de cotización
-            <input required={!isDemo} {...quoteForm.register("sourceRef")} />
-          </label>
+          {!isDemo && (
+            <label>
+              Referencia de la cotización
+              <input required {...quoteForm.register("sourceRef")} />
+            </label>
+          )}
           <label>
             Vigencia
             <input type="date" {...quoteForm.register("validUntil")} />
@@ -430,15 +405,15 @@ export function PurchaseDialogs({
             <textarea {...quoteForm.register("payment")} />
           </label>
           <Button type="submit" disabled={mutate.isPending}>
-            Guardar cotización {isDemo ? "simulada" : "del piloto"}
+            Guardar condiciones
           </Button>
         </form>
       </Modal>
       <Modal
         open={resetOpen}
         onOpenChange={setResetOpen}
-        title="Restablecer datos de prueba"
-        description="Se eliminarán los cambios de esta demo en este navegador y volverán los escenarios iniciales."
+        title="Reiniciar espacio"
+        description="Se borrarán los cambios guardados en este espacio y se recuperará su estado inicial."
       >
         <div className="flex gap-3 mt-6">
           <Button variant="outline" onClick={() => setResetOpen(false)}>

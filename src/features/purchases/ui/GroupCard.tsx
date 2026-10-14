@@ -7,7 +7,6 @@ export function GroupCard({
   stall,
   status,
   onOpen,
-  isDemo,
 }: {
   g: Group;
   stall: string;
@@ -68,15 +67,13 @@ export function GroupCard({
                 : 0),
             0,
           )}{" "}
-          puestos {isDemo ? "de prueba" : "del piloto"}
+          puestos
         </span>
         <span>{dateLabel(g.date)}</span>
       </div>
       <div className="mt-5 pt-4 border-t border-[#e8ece7] flex items-center justify-between">
         <div>
-          <p className="text-xs muted">
-            Precio por volumen {isDemo ? "simulado" : "cotizado"}
-          </p>
+          <p className="text-xs muted">Precio por volumen</p>
           <p className="mt-1 font-semibold">
             {g.quote ? money(g.quote.collective) : "Por cotizar"}{" "}
             <span className="text-xs font-normal muted">/ saco</span>

@@ -1,20 +1,20 @@
 import { useState } from "react";
 import { validatePeriod, type ExportPeriod } from "../domain/export";
-import { PrivacyNotice } from "../../privacy/ui/PrivacyNotice";
-import { FlaskConical, Download, ArrowUpRight } from "lucide-react";
+import { FileDown, CalendarRange } from "lucide-react";
 import { Button } from "../../../components/ui/button";
+import { MarketReferences } from "../../field/ui/MarketReferences";
+import { FieldRecords } from "../../field/ui/FieldRecords";
 export function EvidencePanel({
   isDemo,
   exportData,
   onReset,
   canExportAnalytical,
-  origin,
 }: {
   isDemo: boolean;
   exportData: (period: ExportPeriod, analytical?: boolean) => Promise<void>;
+  onReset: () => void;
   canExportAnalytical: boolean;
   origin: "real" | "simulated";
-  onReset: () => void;
 }) {
   const [period, setPeriod] = useState<ExportPeriod>({
     from: "2026-10-01",
@@ -22,56 +22,32 @@ export function EvidencePanel({
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const runExport = async (analytical = false) => {
+  const run = async (analytical = false) => {
     try {
       setError("");
       validatePeriod(period);
       setBusy(true);
       await exportData(period, analytical);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "No se pudo exportar");
+      setError(
+        e instanceof Error ? e.message : "No se pudo descargar el reporte",
+      );
     } finally {
       setBusy(false);
     }
   };
   return (
-    <div className="evidence-grid">
+    <div>
       <section className="white-panel">
         <span className="product-icon">
-          <FlaskConical />
+          <CalendarRange />
         </span>
-        <h2 className="mt-5">
-          {isDemo
-            ? "Una demo, sin evidencia inventada."
-            : "Piloto con fuentes identificadas."}
-        </h2>
-        <p className="muted mt-3 leading-7">
-          {isDemo
-            ? "Los puestos, proveedores y condiciones de esta demo son ficticios. No son entrevistas, cotizaciones del mercado ni ahorros obtenidos."
-            : "Este entorno conserva registros en Supabase y permite consultar cantidades agregadas de otros puestos. La fuente de cada captura debe verificarse; no se considera evidencia de entrevistas realizadas por el solo hecho de guardarla."}
+        <h2 className="mt-4 text-xl font-semibold">Resumen por periodo</h2>
+        <p className="muted mt-2">
+          Selecciona las fechas de reposición que deseas consultar.
         </p>
-        <div className="evidence-row">
-          <span>Procedencia</span>
-          <strong>{isDemo ? "Simulada" : "Según entorno asignado"}</strong>
-        </div>
-        <div className="evidence-row">
-          <span>Persistencia actual</span>
-          <strong>{isDemo ? "Este navegador" : "Supabase"}</strong>
-        </div>
-        <div className="evidence-row">
-          <span>Supabase</span>
-          <strong>Conectado · acceso por cuenta</strong>
-        </div>
-        <div className="evidence-row">
-          <span>Entrevistas y cotizaciones</span>
-          <strong>8 entrevistas; cotización pendiente</strong>
-        </div>
         <div className="form mt-5">
-          <p>
-            Periodo por fecha deseada de reposición. La exportación omite
-            contactos y texto libre.
-          </p>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <label>
               Desde
               <input
@@ -95,44 +71,28 @@ export function EvidencePanel({
             </p>
           )}
         </div>
-        <div className="flex flex-wrap gap-3 mt-6">
-          <Button variant="outline" disabled={busy} onClick={() => runExport()}>
-            <Download size={16} />
-            Exportar datos {isDemo ? "demo" : "del piloto"}
+        <div className="report-actions">
+          <Button disabled={busy} onClick={() => run()}>
+            <FileDown size={17} />
+            {busy ? "Preparando…" : "Descargar mis registros"}
           </Button>
           {canExportAnalytical && (
-            <Button
-              disabled={busy}
-              variant="outline"
-              onClick={() => runExport(true)}
-            >
-              Exportar análisis del mercado (
-              {origin === "real" ? "real" : "simulado"})
+            <Button variant="outline" disabled={busy} onClick={() => run(true)}>
+              Resumen del mercado
             </Button>
           )}
-          <Button variant="ghost" disabled={!isDemo} onClick={onReset}>
-            Restablecer demo
-          </Button>
         </div>
+        {isDemo && (
+          <details className="mt-6 text-sm muted">
+            <summary className="cursor-pointer">Opciones del espacio</summary>
+            <Button className="mt-3" variant="outline" onClick={onReset}>
+              Reiniciar espacio
+            </Button>
+          </details>
+        )}
       </section>
-      <section className="white-panel">
-        <h2>Contexto y evidencia de campo</h2>
-        <p className="muted mt-3 text-sm leading-6">
-          Consultadas el 12/10/2026. Son referencias públicas; no confirman
-          precios ni descuentos en Merprolima.
-        </p>
-        <a
-          className="source-link"
-          href="https://www.deperu.com/mercados/mercado-productores-merprolima_los-olivos_1573.html"
-          target="_blank"
-          rel="noreferrer"
-        >
-          DePerú · ubicación y mercado mixto
-          <ArrowUpRight size={16} />
-        </a>
-        <p className="muted mt-4 leading-7">Ocho entrevistas reales del 13/10/2026. Las declaraciones individuales se consultan en el módulo restringido del coordinador. No se recogieron cotizaciones de proveedor ni se midió ahorro real.</p>
-        <PrivacyNotice />
-      </section>
+      <MarketReferences />
+      {canExportAnalytical && <FieldRecords />}
     </div>
   );
 }

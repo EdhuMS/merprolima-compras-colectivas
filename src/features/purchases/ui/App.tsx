@@ -1,4 +1,8 @@
-import { useState, type ReactNode } from "react";
+import {
+  WorkspaceSidebar,
+  useWorkspaceSidebar,
+} from "../../../shared/ui/WorkspaceSidebar";
+import { useEffect, useState, type ReactNode } from "react";
 import { usePurchases } from "../application/usePurchases";
 import type { PurchaseRepository } from "../application/ports";
 import { createSnapshotExport, type ExportPeriod } from "../domain/export";
@@ -64,9 +68,12 @@ export function App({
   accountAction: ReactNode;
 }) {
   const [view, setView] = useState<View>("overview");
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [view]);
   const [demoStall, setStall] = useState(stalls[0]);
   const [demoRole, setRole] = useState("buyer");
-  const [mobile, setMobile] = useState(false);
+  const navigation = useWorkspaceSidebar();
   const [formOpen, setFormOpen] = useState(false);
   const [needRequestId, setNeedRequestId] = useState<string>();
   const [editing, setEditing] = useState<Need>();
@@ -82,7 +89,7 @@ export function App({
   const role =
     mode === "demo" ? demoRole : (query.data?.identity?.role ?? "buyer");
   const isDemo = mode === "demo";
-  const originLabel = isDemo ? "simulados" : "del piloto";
+  const originLabel = "del mercado";
   const form = useForm<NeedInput>({
     resolver: zodResolver(needSchema),
     defaultValues: {
@@ -159,9 +166,11 @@ export function App({
       validUntil: new Date(q.validUntil).toLocaleDateString("en-CA", {
         timeZone: "America/Lima",
       }),
-      payment: q.payment,
+      payment: isDemo ? "Por acordar con proveedor" : q.payment,
       sourceRef: q.sourceRef ?? "",
-      supplier: q.supplier,
+      supplier: isDemo
+        ? q.supplier.replace(" · caso de testers", "")
+        : q.supplier,
       evidenceType: q.evidenceType ?? (isDemo ? "simulated" : "unclassified"),
       deliveryEstimate: q.deliveryEstimate ?? null,
     });
@@ -175,7 +184,7 @@ export function App({
         : createSnapshotExport({ ...query.data, products }, period, isDemo);
     downloadJson(
       data,
-      `merprolima-${isDemo ? "simulado" : "piloto"}-${analytical ? "analitico" : "personal"}.json`,
+      `merprolima-${analytical ? "resumen-mercado" : "mis-registros"}.json`,
     );
   };
   const status = (g: Group) => {
@@ -199,7 +208,7 @@ export function App({
     { id: "overview", title: "Resumen", icon: LayoutDashboard },
     { id: "needs", title: "Mis necesidades", icon: ClipboardList },
     { id: "groups", title: "Compras colectivas", icon: ShoppingBasket },
-    { id: "evidence", title: "Datos y evidencia", icon: ShieldCheck },
+    { id: "evidence", title: "Reportes", icon: ShieldCheck },
   ] as const;
   const card = (g: Group) => (
     <GroupCard
@@ -212,9 +221,24 @@ export function App({
     />
   );
   return (
-    <div className="app-shell">
-      <aside className={cn("sidebar", mobile && "sidebar-open")}>
-        <a href="#" className="brand" onClick={(e) => e.preventDefault()}>
+    <div
+      className={cn(
+        "app-shell",
+        !navigation.isMobile &&
+          !navigation.desktopVisible &&
+          "sidebar-collapsed",
+      )}
+    >
+      <WorkspaceSidebar navigation={navigation}>
+        <a
+          href="#"
+          className="brand"
+          onClick={(e) => {
+            e.preventDefault();
+            setView("overview");
+            if (navigation.isMobile) navigation.close();
+          }}
+        >
           <span className="brand-icon">
             <ShoppingBasket size={24} />
           </span>
@@ -235,8 +259,9 @@ export function App({
               key={n.id}
               onClick={() => {
                 setView(n.id);
-                setMobile(false);
+                if (navigation.isMobile) navigation.close();
               }}
+              aria-current={view === n.id ? "page" : undefined}
               className={cn("nav-item", view === n.id && "nav-active")}
             >
               <n.icon size={19} />
@@ -247,69 +272,60 @@ export function App({
         </nav>
         <div className="sidebar-bottom">
           <div className="flex gap-3">
-            <FlaskConical size={20} className="text-[#c2d785]" />
+            <ShieldCheck size={20} className="text-[#c2d785]" />
             <div>
-              <strong className="text-sm">
-                {isDemo ? "Pruebas de testers" : "Piloto del mercado"}
-              </strong>
+              <strong className="text-sm">Tu espacio de compras</strong>
               <p className="mt-2 text-xs leading-5 text-[#becbc3]">
-                {isDemo
-                  ? "Explora el flujo con puestos y cotizaciones ficticios."
-                  : "Acceso restringido al puesto asignado."}
+                Necesidades y propuestas en un solo lugar.
               </p>
             </div>
           </div>
           <p className="mt-6 text-[11px] text-[#91a79a]">
-            APF2 · GRUPO 8 · UTP
+            MERPROLIMA · LOS OLIVOS
           </p>
         </div>
-      </aside>
+      </WorkspaceSidebar>
       <div className="main-shell">
         <header className="topbar">
           <div className="flex items-center gap-3">
             <button
-              className="lg:hidden"
-              aria-label="Abrir menú"
-              onClick={() => setMobile(!mobile)}
+              ref={navigation.toggleRef}
+              className="sidebar-toggle"
+              aria-label={
+                navigation.expanded
+                  ? "Ocultar panel lateral"
+                  : "Mostrar panel lateral"
+              }
+              aria-expanded={navigation.expanded}
+              aria-controls="workspace-navigation"
+              onClick={navigation.toggle}
             >
               <Menu />
             </button>
-            <span className="text-sm muted">Tu mercado</span>
+            <span className="desktop-breadcrumb text-sm muted">Tu mercado</span>
             <ChevronRight size={14} className="muted" />
             <strong className="text-sm">Merprolima</strong>
           </div>
           <div className="flex items-center gap-3">
             <span className="badge badge-neutral hidden sm:inline-flex">
-              {isDemo ? "Demo · Datos simulados" : "Piloto · Supabase"}
+              {role === "coordinator" ? "Coordinación" : "Mi puesto"}
             </span>
             {accountAction}
             <div className="avatar">{role === "buyer" ? "P" : "C"}</div>
           </div>
         </header>
         <main className="page">
-          <div className="demo-strip">
-            <FlaskConical size={16} />
-            <span>
-              {isDemo ? "Pruebas de testers: cantidades y condiciones de caso. No son pedidos de comerciantes." : "Piloto autenticado: fuentes verificables. Una necesidad no constituye una orden ni un pago."}
-            </span>
-            <button
-              onClick={() => setView("evidence")}
-              className="ml-auto whitespace-nowrap font-semibold"
-            >
-              Ver origen <ArrowUpRight className="inline" size={14} />
-            </button>
-          </div>
           <div className="page-heading">
             <div>
               <p className="eyebrow">ABASTECIMIENTO COMPARTIDO</p>
               <h1>
                 {view === "overview"
-                  ? "Comprar juntos empieza aquí."
+                  ? "Resumen de abastecimiento."
                   : view === "needs"
                     ? "Tus necesidades de compra."
                     : view === "groups"
                       ? "Más volumen, mejores decisiones."
-                      : "Datos claros, decisiones honestas."}
+                      : "Reportes de abastecimiento."}
               </h1>
               <p className="mt-3 muted">
                 {view === "overview"
@@ -318,7 +334,7 @@ export function App({
                     ? "Registra lo que necesitas reponer. Tú decides cuándo participar."
                     : view === "groups"
                       ? "Encuentra propuestas compatibles y revisa el costo completo."
-                      : "Conoce qué es simulado y qué falta validar en el mercado."}
+                      : "Consulta tus registros y descarga el resumen del periodo."}
               </p>
             </div>
             {view !== "evidence" && (
@@ -340,17 +356,19 @@ export function App({
           )}
           <div className="context-bar">
             <label className="flex items-center gap-3 text-sm">
-              <span className="muted">
-                {isDemo ? "Puesto de prueba" : "Tu puesto"}
-              </span>
+              <span className="muted">Puesto</span>
               <select
                 disabled={!isDemo}
-                aria-label="Puesto de prueba"
+                aria-label="Puesto"
                 value={stall}
                 onChange={(e) => setStall(e.target.value)}
               >
                 {(isDemo ? stalls : [stall]).map((s) => (
-                  <option key={s}>{s}</option>
+                  <option key={s} value={s}>
+                    {s === "COORD-G8"
+                      ? "Coordinación"
+                      : s.replace("TESTER-", "Puesto ")}
+                  </option>
                 ))}
               </select>
             </label>
@@ -358,7 +376,7 @@ export function App({
               <span className="muted">Vista</span>
               <select
                 disabled={!isDemo}
-                aria-label="Rol de demostración"
+                aria-label="Vista"
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
               >
@@ -366,18 +384,19 @@ export function App({
                 <option value="coordinator">Coordinador</option>
               </select>
             </label>
-            <span className="ml-auto hidden md:inline text-xs muted">
-              {isDemo
-                ? "Estos perfiles no son cuentas reales"
-                : "Rol asignado en Supabase"}
-            </span>
           </div>
           {(notice || mutate.isError || mutate.isSuccess) && (
             <div role="status" className="notice">
               {notice ||
                 mutate.error?.message ||
                 "Cambios guardados correctamente."}
-              <button aria-label="Cerrar aviso" onClick={() => setNotice("")}>
+              <button
+                aria-label="Cerrar aviso"
+                onClick={() => {
+                  setNotice("");
+                  mutate.reset();
+                }}
+              >
                 <X size={16} />
               </button>
             </div>
@@ -393,7 +412,7 @@ export function App({
                 disabled={!isDemo}
                 onClick={() => setResetOpen(true)}
               >
-                Restablecer demo
+                Reiniciar espacio
               </Button>
             </div>
           ) : (
@@ -428,7 +447,7 @@ export function App({
                       <div className="sack sack-one">
                         <Wheat size={45} />
                         <span>ARROZ</span>
-                        <small>49 kg</small>
+                        <small>50 kg</small>
                       </div>
                       <div className="sack sack-two">
                         <Leaf size={40} />
@@ -447,11 +466,7 @@ export function App({
                       </span>
                       <p>Mis necesidades activas</p>
                       <strong>{mine.length.toString().padStart(2, "0")}</strong>
-                      <small>
-                        {isDemo
-                          ? "Guardadas en esta demo"
-                          : "Persistentes en Supabase"}
-                      </small>
+                      <small>Reposiciones por coordinar</small>
                     </div>
                     <div>
                       <span className="stat-icon">
@@ -467,11 +482,7 @@ export function App({
                       </span>
                       <p>Mis participaciones</p>
                       <strong>{active.toString().padStart(2, "0")}</strong>
-                      <small>
-                        {isDemo
-                          ? "Confirmaciones vigentes de prueba"
-                          : "Confirmaciones vigentes"}
-                      </small>
+                      <small>Confirmaciones vigentes</small>
                     </div>
                   </section>
                   <div className="section-heading">
@@ -488,15 +499,32 @@ export function App({
                   <section className="cards-grid">
                     {groups.slice(0, 3).map(card)}
                   </section>
+                  {!groups.length && (
+                    <div className="empty workspace-empty">
+                      <ShoppingBasket size={32} />
+                      <h2>Organiza tu primera reposición</h2>
+                      <p>
+                        Registra una necesidad para coordinarla con otros
+                        puestos.
+                      </p>
+                      <Button
+                        disabled={!products.length}
+                        onClick={() => openForm()}
+                      >
+                        <Plus size={17} />
+                        Registrar necesidad
+                      </Button>
+                    </div>
+                  )}
                   <div className="how-panel">
                     <ShieldCheck size={24} />
                     <div>
                       <h3 className="font-semibold">
-                        Primero compara. Después decide.
+                        Condiciones antes de participar.
                       </h3>
                       <p className="muted text-sm mt-1">
-                        Registrar una necesidad no confirma una compra. No se
-                        procesan pagos en esta aplicación.
+                        Revisa el costo total, la entrega y la vigencia de cada
+                        propuesta.
                       </p>
                     </div>
                   </div>
@@ -505,10 +533,7 @@ export function App({
               {view === "groups" && (
                 <>
                   <div className="section-heading">
-                    <h2>
-                      {groups.length} propuestas{" "}
-                      {isDemo ? "de demostración" : "del piloto"}
-                    </h2>
+                    <h2>{groups.length} propuestas disponibles</h2>
                     <span className="text-xs muted">
                       Entrega o recojo compatibles
                     </span>
@@ -532,10 +557,13 @@ export function App({
               {view === "needs" && (
                 <section className="white-panel">
                   <div className="section-heading">
-                    <h2>Registros de {stall}</h2>
-                    <span className="badge badge-neutral">
-                      {isDemo ? "Simulados" : "Piloto"}
-                    </span>
+                    <h2>
+                      Necesidades de{" "}
+                      {stall === "COORD-G8"
+                        ? "Coordinación"
+                        : stall.replace("TESTER-", "Puesto ")}
+                    </h2>
+                    <span className="badge badge-neutral">Activas</span>
                   </div>
                   {mine.length ? (
                     <div className="overflow-x-auto">
@@ -633,8 +661,8 @@ export function App({
             </>
           )}
           <footer>
-            Proyecto académico · Innovación y Transformación Digital · Grupo 8
-            <span>Merprolima / MVP APF2</span>
+            Merprolima · Compras colectivas
+            <span>Abastecimiento compartido</span>
           </footer>
         </main>
       </div>

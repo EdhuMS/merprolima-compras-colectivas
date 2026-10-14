@@ -17,8 +17,8 @@ export function Modal({
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-black/35 backdrop-blur-sm" />
-        <DialogPrimitive.Content className="fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-auto rounded-2xl bg-white p-7 shadow-2xl">
+        <DialogPrimitive.Overlay className="fixed inset-0 z-[75] bg-black/35 backdrop-blur-sm" />
+        <DialogPrimitive.Content className="workspace-dialog">
           <DialogPrimitive.Title className="text-2xl font-semibold tracking-tight">
             {title}
           </DialogPrimitive.Title>
