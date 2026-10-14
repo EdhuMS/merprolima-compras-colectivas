@@ -1,3 +1,4 @@
+import { BrandLogo } from "../../../shared/ui/BrandLogo";
 import {
   ArrowRight,
   ShoppingBasket,
@@ -20,7 +21,7 @@ export function FieldOverview({
     <div className="landing">
       <header className="landing-header">
         <a href="#" className="landing-brand">
-          merprolima<span>.</span>
+          <BrandLogo />
         </a>
         <Button variant="outline" onClick={onPilot}>
           Ingresar a mi cuenta
@@ -111,7 +112,7 @@ export function FieldOverview({
         </section>
       </main>
       <footer className="landing-footer">
-        <strong>Merprolima · Compras colectivas</strong>
+        <strong>Sumabasto · Compras colectivas</strong>
         <span>Coordinación entre puestos de abarrotes</span>
       </footer>
     </div>

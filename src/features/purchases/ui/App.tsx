@@ -1,3 +1,4 @@
+import { BrandLogo } from "../../../shared/ui/BrandLogo";
 import {
   WorkspaceSidebar,
   useWorkspaceSidebar,
@@ -184,7 +185,7 @@ export function App({
         : createSnapshotExport({ ...query.data, products }, period, isDemo);
     downloadJson(
       data,
-      `merprolima-${analytical ? "resumen-mercado" : "mis-registros"}.json`,
+      `sumabasto-${analytical ? "resumen-mercado" : "mis-registros"}.json`,
     );
   };
   const status = (g: Group) => {
@@ -239,15 +240,7 @@ export function App({
             if (navigation.isMobile) navigation.close();
           }}
         >
-          <span className="brand-icon">
-            <ShoppingBasket size={24} />
-          </span>
-          <div>
-            <strong>
-              merprolima<span className="text-[#c2d785]">.</span>
-            </strong>
-            <p>COMPRAS COLECTIVAS</p>
-          </div>
+<BrandLogo compact />
         </a>
         <div className="market-label">
           <span className="size-2 rounded-full bg-[#b6cb81]" /> Mercado de
@@ -661,7 +654,7 @@ export function App({
             </>
           )}
           <footer>
-            Merprolima · Compras colectivas
+            Sumabasto · Compras colectivas
             <span>Abastecimiento compartido</span>
           </footer>
         </main>

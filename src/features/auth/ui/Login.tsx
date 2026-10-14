@@ -1,3 +1,4 @@
+import { BrandLogo } from "../../../shared/ui/BrandLogo";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,7 +28,7 @@ export function Login({ onDemo }: { onDemo: () => void }) {
             onDemo();
           }}
         >
-          merprolima<span>.</span>
+          <BrandLogo />
         </a>
         <h1 className="text-3xl font-semibold mt-8">Ingresa a tu puesto</h1>
         <p className="muted text-sm mt-3 leading-6">

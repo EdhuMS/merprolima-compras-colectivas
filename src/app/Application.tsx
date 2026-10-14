@@ -30,7 +30,7 @@ export function Application() {
   if (loading)
     return (
       <div className="loading-screen">
-        <span className="loading-mark">m.</span>
+        <img className="sumabasto-logo" src="/brand/sumabasto-logo.png" alt="Sumabasto" />
         <p>Abriendo tu mercado…</p>
       </div>
     );
