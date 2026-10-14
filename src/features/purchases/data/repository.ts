@@ -14,9 +14,9 @@ const key = "merprolima:demo:v1";
 import type { PurchaseRepository } from "../application/ports";
 export type { PurchaseRepository } from "../application/ports";
 export class LocalDemoRepository implements PurchaseRepository {
-  constructor(private readonly makeSeed = demoSeed, private readonly catalog = products) {}
+  constructor(private readonly makeSeed = demoSeed, private readonly catalog = products, private readonly storageKey = key) {}
   async read(): Promise<Store> {
-    const raw = localStorage.getItem(key);
+    const raw = localStorage.getItem(this.storageKey);
     if (!raw) {
       const seed = this.makeSeed();
       this.write(seed);
@@ -35,7 +35,7 @@ export class LocalDemoRepository implements PurchaseRepository {
     return store;
   }
   private write(store: Store) {
-    localStorage.setItem(key, JSON.stringify(store));
+    localStorage.setItem(this.storageKey, JSON.stringify(store));
   }
   async saveNeed(input: NeedInput, stall: string, id?: string) {
     needSchema.parse(input);
@@ -129,7 +129,7 @@ export class LocalDemoRepository implements PurchaseRepository {
     this.write(s);
   }
   async reset() {
-    this.write(demoSeed());
+    this.write(this.makeSeed());
   }
 }
 export const repository = new LocalDemoRepository();

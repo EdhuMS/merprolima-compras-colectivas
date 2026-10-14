@@ -23,7 +23,7 @@ export function CatalogManager({
     [error, setError] = useState("");
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
-    defaultValues: { category: "Arroz", kg: 49 },
+    defaultValues: { category: "Arroz", kg: 50 },
   });
   return (
     <>
@@ -34,7 +34,7 @@ export function CatalogManager({
         open={open}
         onOpenChange={setOpen}
         title="Producto del piloto"
-        description="Usa el nombre, marca y presentación exactos recogidos en campo."
+        description="Usa el nombre, marca y presentación exactos documentados en campo o una lista web identificada."
       >
         <form
           className="form"

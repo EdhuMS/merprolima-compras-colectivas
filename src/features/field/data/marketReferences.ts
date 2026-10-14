@@ -1,0 +1,62 @@
+export const marketReferences = [
+  {
+    "id": "salima-faraon-50",
+    "supplier": "Salima",
+    "product": "Arroz extra añejo Faraón Azul",
+    "brand": "Faraón Azul",
+    "kg": 50,
+    "category": "Arroz",
+    "retail": 197,
+    "wholesale": 195,
+    "url": "https://salima.pe/producto/SL100024/arroz-extra-anejo-faraon-azul-x-50-kg",
+    "consultedAt": "2026-10-13",
+    "minimumQty": null,
+    "transport": null,
+    "validUntil": null
+  },
+  {
+    "id": "salima-costeno-50",
+    "supplier": "Salima",
+    "product": "Arroz Costeño Extra",
+    "brand": "Costeño",
+    "kg": 50,
+    "category": "Arroz",
+    "retail": 217,
+    "wholesale": 213,
+    "url": "https://salima.pe/producto/SL100022/arroz-costeno-extra-x-50-kg",
+    "consultedAt": "2026-10-13",
+    "minimumQty": null,
+    "transport": null,
+    "validUntil": null
+  },
+  {
+    "id": "salima-cartavio-50",
+    "supplier": "Salima",
+    "product": "Azúcar rubia Cartavio",
+    "brand": "Cartavio",
+    "kg": 50,
+    "category": "Azúcar",
+    "retail": 185,
+    "wholesale": 183,
+    "url": "https://salima.pe/producto/SL100057/azucar-rubia-cartavio-x-50-kg",
+    "consultedAt": "2026-10-13",
+    "minimumQty": null,
+    "transport": null,
+    "validUntil": null
+  },
+  {
+    "id": "mundo-paramonga-50",
+    "supplier": "Mundo Abarrotes",
+    "product": "Azúcar rubia Paramonga",
+    "brand": "Paramonga",
+    "kg": 50,
+    "category": "Azúcar",
+    "retail": 168,
+    "wholesale": null,
+    "url": "https://mundoabarrotes.com/producto/azucar-rubia-paramonga-50kg/",
+    "consultedAt": "2026-10-13",
+    "minimumQty": null,
+    "transport": null,
+    "validUntil": null
+  }
+];

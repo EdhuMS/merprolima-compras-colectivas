@@ -32,7 +32,7 @@ Variables publicables: VITE_SUPABASE_URL y VITE_SUPABASE_PUBLISHABLE_KEY, config
 
 ## Estado operativo
 
-Las migraciones están aplicadas y los permisos probados con actores ficticios dentro de una transacción revertida. Existe una cuenta coordinadora activa. Hay ocho declaraciones de campo reales en un módulo separado; aún no hay necesidades operativas precisadas, cotizaciones ni participaciones reales. Crear las cuentas piloto en Supabase Auth y asignar membresía antes de registrar datos de campo. El modo piloto no se ha probado con una sesión real desde navegador todavía.
+Las migraciones están aplicadas y los permisos probados con actores ficticios dentro de una transacción revertida. Existe una cuenta coordinadora activa. Hay ocho declaraciones de campo reales en un módulo separado; aún no hay necesidades operativas precisadas, cotizaciones ni participaciones reales. Crear las cuentas piloto en Supabase Auth y asignar membresía antes de registrar datos de campo. Sesión real coordinadora, alta de catálogo y persistencia verificadas desde navegador. Pruebas de flujo como testers en entorno separado; no pruebas con comerciantes.
 
 ## Vercel
 
@@ -41,3 +41,7 @@ Proyecto merprolima-compras-colectivas de edhumss-projects vinculado mediante CL
 ## Cierre del 13/10/2026
 
 20 pruebas pasaron. Cotizaciones con tipo de evidencia y gastos null, fecha estimada del proveedor y exportación por periodo/analítica disponibles. Historial de necesidades desde la nueva migración. Ver docs/estado-mvp.md, docs/tablero-kanban.md, docs/validacion-cierre-apf2.md y docs/privacidad-piloto.md.
+
+## Evaluación del flujo
+
+Pruebas de testers abre un entorno local claramente rotulado. Cantidades, mínimo y fechas son casos técnicos; usa precios publicados con fuente. No registra esos casos en Supabase ni los convierte en datos de campo. Ver docs/fuentes-mayoristas.md y docs/pruebas-testers-apf2.md.

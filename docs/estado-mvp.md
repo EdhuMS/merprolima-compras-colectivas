@@ -31,3 +31,5 @@ La revisión humana y validación con comerciante siguen pendientes aunque funci
 ## Estado vigente del campo
 
 Actualización del 13/10/2026: ocho entrevistas reales incorporadas en field_interviews. La página pública presenta solo resultados agregados; el coordinador activo consulta las declaraciones codificadas. La demostración ficticia fue retirada. Cotización comparable, aclaración de producto por cantidad y prueba observada con usuario permanecen pendientes. Ver docs/actualizacion-evidencia-real.md. Despliegue READY dpl_CuhVgexH8DLHBpB49UPRzr8a9rYe. Compilación y 20 pruebas de reglas pasaron.
+
+Actualización de cierre: sesión real coordinadora y persistencia de catálogo verificadas por navegador. Pruebas como testers ejecutadas en entorno local separado; 20 pruebas de reglas y SQL del piloto aprobadas. Listas mayoristas web documentadas el13/10/2026. Necesidades de campo interpretadas como cantidades generales variables con ventas por marca. Responsables: Jesus lidera, Edhu tecnología, Leonardo campo y documentos; revisión conjunta del grupo. Despliegue READY dpl_8uLBEWdy75gzX5xgtiR8FuKy77W1.

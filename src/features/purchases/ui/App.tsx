@@ -250,7 +250,7 @@ export function App({
             <FlaskConical size={20} className="text-[#c2d785]" />
             <div>
               <strong className="text-sm">
-                {isDemo ? "Espacio de demostración" : "Piloto del mercado"}
+                {isDemo ? "Pruebas de testers" : "Piloto del mercado"}
               </strong>
               <p className="mt-2 text-xs leading-5 text-[#becbc3]">
                 {isDemo
@@ -290,8 +290,7 @@ export function App({
           <div className="demo-strip">
             <FlaskConical size={16} />
             <span>
-              Estás usando datos simulados. Ningún registro representa una
-              compra real.
+              {isDemo ? "Pruebas de testers: cantidades y condiciones de caso. No son pedidos de comerciantes." : "Piloto autenticado: fuentes verificables. Una necesidad no constituye una orden ni un pago."}
             </span>
             <button
               onClick={() => setView("evidence")}
@@ -635,7 +634,7 @@ export function App({
           )}
           <footer>
             Proyecto académico · Innovación y Transformación Digital · Grupo 8
-            <span>Merprolima / Demo v0.1</span>
+            <span>Merprolima / MVP APF2</span>
           </footer>
         </main>
       </div>

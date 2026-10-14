@@ -25,3 +25,9 @@ Hecho exige revisión humana. Un cierre técnico comprobado por el agente deja l
 ## Funciones propuestas para confirmar
 
 Producto y campo: puestos, permisos, entrevistas y proveedor. Desarrollo: cuentas, migraciones, aplicación y despliegue. Calidad y documentación: fuentes, anexos, revisión y ensayo. La asignación nominal corresponde al Grupo 8. No se atribuye trabajo ya realizado a un integrante sin su confirmación.
+
+## Actualización del cierre con evidencia real
+
+Jesus: líder, producto, coordinación y aprobación. Edhu: tecnología, arquitectura, Supabase y Vercel. Leonardo: campo y calidad documental. Revisión conjunta del Grupo 8 confirmada por el usuario; no se reconstruyen revisiones individuales pasadas.
+
+K06: ocho entrevistas recibidas; precios complementados con listas mayoristas web, sin cotización personalizada. K07: sesión real coordinadora y alta/persistencia del catálogo comprobadas; cuentas de comerciantes fuera de esta evaluación. K08 se sustituye por pruebas como testers en entorno separado, verificadas con capturas; no son pruebas con comerciantes. K04: informe y presentación revisados técnicamente, en revisión conjunta del grupo.
