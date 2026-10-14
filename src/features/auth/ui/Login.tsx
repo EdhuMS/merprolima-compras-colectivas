@@ -5,7 +5,7 @@ import { z } from "zod";
 import { Button } from "../../../components/ui/button";
 import { requireSupabase } from "../../../infrastructure/supabase/client";
 const schema = z.object({
-  email: z.email("Ingresa un correo válido"),
+  email: z.email("Ingresa un correo vÃ¡lido"),
   password: z.string().min(8, "Usa al menos ocho caracteres"),
 });
 export function Login({ onDemo }: { onDemo: () => void }) {
@@ -17,7 +17,7 @@ export function Login({ onDemo }: { onDemo: () => void }) {
   return (
     <main className="min-h-screen grid place-items-center px-5 bg-[#f6f7f3]">
       <section className="white-panel w-full max-w-md">
-        <p className="eyebrow">MERPROLIMA · PILOTO</p>
+        <p className="eyebrow">MERPROLIMA Â· PILOTO</p>
         <h1 className="text-3xl font-semibold mt-3">Accede a tu puesto.</h1>
         <p className="muted text-sm mt-3 leading-6">
           Usa la cuenta habilitada para el piloto. La cuenta debe tener un
@@ -34,7 +34,7 @@ export function Login({ onDemo }: { onDemo: () => void }) {
               if (error) throw error;
             } catch (e) {
               setMessage(
-                e instanceof Error ? e.message : "No se pudo iniciar sesión",
+                e instanceof Error ? e.message : "No se pudo iniciar sesiÃ³n",
               );
             } finally {
               setBusy(false);
@@ -55,7 +55,7 @@ export function Login({ onDemo }: { onDemo: () => void }) {
             )}
           </label>
           <label>
-            Contraseña
+            ContraseÃ±a
             <input
               type="password"
               autoComplete="current-password"
@@ -73,15 +73,15 @@ export function Login({ onDemo }: { onDemo: () => void }) {
             </p>
           )}
           <Button type="submit" disabled={busy}>
-            {busy ? "Conectando…" : "Iniciar sesión"}
+            {busy ? "Conectandoâ€¦" : "Iniciar sesiÃ³n"}
           </Button>
           <Button type="button" variant="outline" onClick={onDemo}>
             Explorar demo sin cuenta
           </Button>
         </form>
         <p className="text-xs muted mt-6 leading-5">
-          El registro público está cerrado en la aplicación. Solicita al equipo
-          una cuenta del piloto. La demo utiliza únicamente datos ficticios.
+          El registro pÃºblico estÃ¡ cerrado en la aplicaciÃ³n. Solicita al equipo
+          una cuenta del piloto. La demo utiliza Ãºnicamente datos ficticios.
         </p>
       </section>
     </main>

@@ -4,7 +4,7 @@ MVP académico APF2, Grupo 8. Entrega 14/10/2026.
 
 **Demo desplegada en Vercel:** [Abrir Merprolima compras colectivas](https://merprolima-compras-colectivas.vercel.app/).
 
-Demo pública con datos simulados y modo piloto conectado a Supabase. Registrar necesidades, agrupar cantidades compatibles, comparar costo total y confirmar participación no acredita una compra o entrevista realizada.
+Vista pública con resultados agregados de ocho entrevistas reales y piloto autenticado conectado a Supabase. Registrar necesidades, agrupar cantidades compatibles, comparar costo total y confirmar participación no acredita una compra o entrevista realizada.
 
 ## Ejecutar y verificar
 
@@ -19,24 +19,24 @@ React, TypeScript, Vite, Tailwind, componentes shadcn/Radix, React Hook Form, Zo
 
 ## Supabase
 
-Proyecto ctvfzxhodqdeiqiyokfa. El modo piloto exige una cuenta de Supabase Auth y una membresía activa con puesto y rol. El catálogo y cotizaciones los administra el coordinador. No se otorgan roles desde el navegador. La demo local no envía simulaciones a las tablas del piloto.
+Proyecto ctvfzxhodqdeiqiyokfa. El modo piloto exige una cuenta de Supabase Auth y una membresía activa con puesto y rol. El catálogo y cotizaciones los administra el coordinador. No se otorgan roles desde el navegador. Los fixtures de la demo se retiraron. field_interviews conserva ocho declaraciones reales con acceso restringido al coordinador.
 
 Variables publicables: VITE_SUPABASE_URL y VITE_SUPABASE_PUBLISHABLE_KEY, configuradas en Vercel. Nunca utilizar service_role o contraseña de base de datos en el cliente.
 
 ## Documentación
 
 - docs/definicion-apf2.md y docs/contrato-datos.md: definición y contrato implementado actualizado.
-- docs/control-evidencia.md y docs/investigacion-simulacion.md: evidencia pendiente y supuestos públicos.
+- docs/actualizacion-evidencia-real.md: estado vigente y alcance de las declaraciones. Los documentos de simulación se conservan únicamente como historial.
 - docs/arquitectura-piloto.md: capas, permisos y habilitación de cuentas.
 - docs/validacion-supabase-vercel.md: verificación de base de datos e interfaz.
 
 ## Estado operativo
 
-Las migraciones están aplicadas y los permisos probados con actores ficticios dentro de una transacción revertida. Existe una cuenta coordinadora activa. No hay necesidades, cotizaciones ni participaciones reales al corte. Crear las cuentas piloto en Supabase Auth y asignar membresía antes de registrar datos de campo. El modo piloto no se ha probado con una sesión real desde navegador todavía.
+Las migraciones están aplicadas y los permisos probados con actores ficticios dentro de una transacción revertida. Existe una cuenta coordinadora activa. Hay ocho declaraciones de campo reales en un módulo separado; aún no hay necesidades operativas precisadas, cotizaciones ni participaciones reales. Crear las cuentas piloto en Supabase Auth y asignar membresía antes de registrar datos de campo. El modo piloto no se ha probado con una sesión real desde navegador todavía.
 
 ## Vercel
 
-Proyecto merprolima-compras-colectivas de edhumss-projects vinculado mediante CLI. Publicación en producción con vercel deploy --prod. La demo anterior de Sites sigue disponible como versión inicial.
+Proyecto merprolima-compras-colectivas de edhumss-projects vinculado mediante CLI. Publicación en producción con vercel deploy --prod. La versión actual sustituye la demostración ficticia.
 
 ## Cierre del 13/10/2026
 

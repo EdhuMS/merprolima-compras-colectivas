@@ -27,3 +27,7 @@ Aviso visible y política operativa preparada. Responsable/canal, autorizaciones
 US01: técnica implementada, login real de navegador pendiente. US02: UUID y persistencia probados; desconexión controlada pendiente. US03–US07 y US10: reglas comprobadas. US05 incluye evidencia y gastos null. US08 tiene fecha estimada independiente; no recepción física. US09 tiene exportación por periodo y analítica; interfaz de coordinador autenticado pendiente. US11 queda para APF3.
 
 La revisión humana y validación con comerciante siguen pendientes aunque funcionen los controles técnicos. Ver tablero-kanban.md, validacion-cierre-apf2.md y privacidad-piloto.md.
+
+## Estado vigente del campo
+
+Actualización del 13/10/2026: ocho entrevistas reales incorporadas en field_interviews. La página pública presenta solo resultados agregados; el coordinador activo consulta las declaraciones codificadas. La demostración ficticia fue retirada. Cotización comparable, aclaración de producto por cantidad y prueba observada con usuario permanecen pendientes. Ver docs/actualizacion-evidencia-real.md. Despliegue READY dpl_CuhVgexH8DLHBpB49UPRzr8a9rYe. Compilación y 20 pruebas de reglas pasaron.

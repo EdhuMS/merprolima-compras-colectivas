@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { createSnapshotExport, validatePeriod } from "./export";
 import { quoteSchema, groupNeeds, comparison, signature } from "./model";
-import { demoSeed, products } from "../data/seed";
+import { demoSeed, products } from "./test-fixtures";
 import { LocalDemoRepository } from "../data/repository";
 describe("Cierre APF2", () => {
   const period = { from: "2026-10-01", to: "2026-10-31" };
@@ -52,7 +52,7 @@ describe("Cierre APF2", () => {
       getItem: (k: string) => mem.get(k) ?? null,
       setItem: (k: string, v: string) => mem.set(k, v),
     });
-    const r = new LocalDemoRepository();
+    const r = new LocalDemoRepository(demoSeed, products);
     const before = await r.read();
     const input = {
       productId: products[0].id,
@@ -74,7 +74,7 @@ describe("Cierre APF2", () => {
       getItem: (k: string) => mem.get(k) ?? null,
       setItem: (k: string, v: string) => mem.set(k, v),
     });
-    const r = new LocalDemoRepository();
+    const r = new LocalDemoRepository(demoSeed, products);
     const g = groupNeeds(await r.read(), products)[0];
     const before = signature(g);
     await r.updateQuote(g.key, {

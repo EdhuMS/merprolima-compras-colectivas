@@ -14,10 +14,11 @@ const key = "merprolima:demo:v1";
 import type { PurchaseRepository } from "../application/ports";
 export type { PurchaseRepository } from "../application/ports";
 export class LocalDemoRepository implements PurchaseRepository {
+  constructor(private readonly makeSeed = demoSeed, private readonly catalog = products) {}
   async read(): Promise<Store> {
     const raw = localStorage.getItem(key);
     if (!raw) {
-      const seed = demoSeed();
+      const seed = this.makeSeed();
       this.write(seed);
       return seed;
     }
@@ -78,11 +79,11 @@ export class LocalDemoRepository implements PurchaseRepository {
     decision: "confirmed" | "declined",
   ) {
     const s = await this.read();
-    const group = groupNeeds(s, products).find((g) => g.key === groupKey);
+    const group = groupNeeds(s, this.catalog).find((g) => g.key === groupKey);
     if (!group || !group.needs.some((n) => n.stall === stall))
       throw new Error("Primero registra una necesidad compatible");
     if (decision === "confirmed" && !comparison(group, stall).eligible)
-      throw new Error("La propuesta todavía no se puede confirmar");
+      throw new Error("La propuesta todavÃ­a no se puede confirmar");
     const sig = signature(group);
     const existing = s.participations.find(
       (p) => p.groupKey === groupKey && p.stall === stall,
@@ -106,7 +107,7 @@ export class LocalDemoRepository implements PurchaseRepository {
   async updateQuote(groupKey: string, input: QuoteInput) {
     quoteSchema.parse(input);
     const s = await this.read();
-    const group = groupNeeds(s, products).find((g) => g.key === groupKey);
+    const group = groupNeeds(s, this.catalog).find((g) => g.key === groupKey);
     if (!group) throw new Error("Grupo no encontrado");
     if (!group.quote) {
       s.quotes.push({

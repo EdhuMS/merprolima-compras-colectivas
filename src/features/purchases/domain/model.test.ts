@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { groupNeeds, comparison, signature, needSchema } from "./model";
-import { demoSeed, products } from "../data/seed";
+import { demoSeed, products } from "./test-fixtures";
 import { LocalDemoRepository } from "../data/repository";
 describe("Reglas de compras colectivas", () => {
   it("separa productos y presentaciones", () => {
@@ -77,7 +77,7 @@ describe("Persistencia demo", () => {
     });
   });
   it("conserva edición, impide editar otro puesto y retira del total", async () => {
-    const r = new LocalDemoRepository();
+    const r = new LocalDemoRepository(demoSeed, products);
     const s = await r.read();
     await r.saveNeed({ ...s.needs[0], qty: 6 }, "DEMO-01", "n1");
     expect((await r.read()).needs[0].qty).toBe(6);
@@ -86,7 +86,7 @@ describe("Persistencia demo", () => {
     expect(groupNeeds(await r.read(), products)[0].total).toBe(9);
   });
   it("confirmación repetida no se duplica y detecta cambio", async () => {
-    const r = new LocalDemoRepository();
+    const r = new LocalDemoRepository(demoSeed, products);
     const g = groupNeeds(await r.read(), products)[0];
     await r.decide(g.key, "DEMO-01", "confirmed");
     await r.decide(g.key, "DEMO-01", "confirmed");
@@ -109,7 +109,7 @@ describe("Persistencia demo", () => {
     );
   });
   it("impide confirmar sin necesidad y sin volumen suficiente", async () => {
-    const r = new LocalDemoRepository();
+    const r = new LocalDemoRepository(demoSeed, products);
     const groups = groupNeeds(await r.read(), products);
     await expect(
       r.decide(groups[0].key, "DEMO-04", "confirmed"),

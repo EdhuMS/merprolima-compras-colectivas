@@ -64,7 +64,7 @@ export function EvidencePanel({
         </div>
         <div className="evidence-row">
           <span>Entrevistas y cotizaciones</span>
-          <strong>Pendientes de campo</strong>
+          <strong>8 entrevistas; cotización pendiente</strong>
         </div>
         <div className="form mt-5">
           <p>
@@ -116,7 +116,7 @@ export function EvidencePanel({
         </div>
       </section>
       <section className="white-panel">
-        <h2>Referencias para los supuestos</h2>
+        <h2>Contexto y evidencia de campo</h2>
         <p className="muted mt-3 text-sm leading-6">
           Consultadas el 12/10/2026. Son referencias públicas; no confirman
           precios ni descuentos en Merprolima.
@@ -130,30 +130,7 @@ export function EvidencePanel({
           DePerú · ubicación y mercado mixto
           <ArrowUpRight size={16} />
         </a>
-        <a
-          className="source-link"
-          href="https://agroindustriasbadel.com/"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Badel · arroz en sacos de 49 kg
-          <ArrowUpRight size={16} />
-        </a>
-        <a
-          className="source-link"
-          href="https://www.tualiadomayorista.com/abarrotes/arroz-y-legumbres/azucar-rubia-domestica-paramonga-50kg/"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Tu Aliado Mayorista · azúcar de 50 kg
-          <ArrowUpRight size={16} />
-        </a>
-        <h3 className="font-semibold mt-7">Cómo incorporar datos reales</h3>
-        <p className="muted text-sm leading-6 mt-2">
-          Conservar el producto y presentación exactos, registrar la fuente y su
-          permiso, y capturar precios, mínimos y gastos. Los datos reales se
-          cargarán en el piloto de Supabase después de verificar su procedencia.
-        </p>
+        <p className="muted mt-4 leading-7">Ocho entrevistas reales del 13/10/2026. Las declaraciones individuales se consultan en el módulo restringido del coordinador. No se recogieron cotizaciones de proveedor ni se midió ahorro real.</p>
         <PrivacyNotice />
       </section>
     </div>

@@ -1,0 +1,3 @@
+# Actualización del 13 de octubre de 2026
+
+Ocho entrevistas reales sustituyen la demo ficticia. La vista pública presenta resultados agregados. Las declaraciones C01–C08 se almacenan en Supabase con lectura limitada al coordinador activo; no incluyen puestos originales, fotos ni contactos. Las cantidades no se registran como necesidades operativas: falta confirmar un SKU por cantidad y fecha. No existen cotizaciones de proveedor verificadas ni ahorro real calculado. Los originales y fotografías permanecen en anexos académicos autorizados. La clave local de fixtures anterior se elimina. Las pruebas automatizadas utilizan casos técnicos, que no son evidencia de campo.
