@@ -37,7 +37,10 @@ export function ParticipationsPanel({
       const state =
         p.status === "declined"
           ? "declined"
-          : !group || expired || signature(group) !== p.signature
+          : p.status === "pending" ||
+              !group ||
+              expired ||
+              signature(group) !== p.signature
             ? "review"
             : "confirmed";
       return {
@@ -54,9 +57,11 @@ export function ParticipationsPanel({
               ? "Compra sin necesidades activas"
               : expired
                 ? "Propuesta vencida"
-                : state === "review"
-                  ? "Requiere nueva confirmación"
-                  : "Participación confirmada",
+                : p.status === "pending"
+                  ? "Pedido pendiente de confirmación"
+                  : state === "review"
+                    ? "Requiere nueva confirmación"
+                    : "Participación confirmada",
       };
     })
     .sort((a, b) => b.p.createdAt.localeCompare(a.p.createdAt));

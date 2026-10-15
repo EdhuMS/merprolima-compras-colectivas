@@ -14,7 +14,11 @@ const key = "merprolima:demo:v1";
 import type { PurchaseRepository } from "../application/ports";
 export type { PurchaseRepository } from "../application/ports";
 export class LocalDemoRepository implements PurchaseRepository {
-  constructor(private readonly makeSeed = demoSeed, private readonly catalog = products, private readonly storageKey = key) {}
+  constructor(
+    private readonly makeSeed = demoSeed,
+    private readonly catalog = products,
+    private readonly storageKey = key,
+  ) {}
   async read(): Promise<Store> {
     const raw = localStorage.getItem(this.storageKey);
     if (!raw) {
@@ -77,19 +81,45 @@ export class LocalDemoRepository implements PurchaseRepository {
     groupKey: string,
     stall: string,
     decision: "confirmed" | "declined",
+    qty?: number,
   ) {
     const s = await this.read();
-    const group = groupNeeds(s, this.catalog).find((g) => g.key === groupKey);
-    if (!group || !group.needs.some((n) => n.stall === stall))
-      throw new Error("Primero registra una necesidad compatible");
-    if (decision === "confirmed" && !comparison(group, stall).eligible)
-      throw new Error("La propuesta todavÃ­a no se puede confirmar");
+    let group = groupNeeds(s, this.catalog).find((g) => g.key === groupKey);
+    if (!group?.quote) throw new Error("No hay una propuesta publicada");
+    if (
+      decision === "confirmed" &&
+      new Date(group.quote.validUntil) < new Date()
+    )
+      throw new Error("La propuesta venció");
+    if (
+      decision === "confirmed" &&
+      !group.needs.some((n) => n.stall === stall)
+    ) {
+      if (!Number.isInteger(qty) || !qty || qty < 1 || qty > 500)
+        throw new Error("Indica entre 1 y 500 sacos");
+      s.needs.push({
+        id: crypto.randomUUID(),
+        stall,
+        productId: group.product.id,
+        qty,
+        date: group.date,
+        mode: group.mode,
+        status: "open",
+        origin: group.origin,
+        createdAt: new Date().toISOString(),
+      });
+      group = groupNeeds(s, this.catalog).find((g) => g.key === groupKey)!;
+    }
+    const participationStatus =
+      decision === "confirmed" && !comparison(group, stall).eligible
+        ? "pending"
+        : decision;
     const sig = signature(group);
     const existing = s.participations.find(
       (p) => p.groupKey === groupKey && p.stall === stall,
     );
     if (existing) {
-      existing.status = decision;
+      existing.status = participationStatus;
       existing.signature = sig;
       existing.createdAt = new Date().toISOString();
     } else
@@ -98,7 +128,7 @@ export class LocalDemoRepository implements PurchaseRepository {
         groupKey,
         stall,
         signature: sig,
-        status: decision,
+        status: participationStatus,
         origin: "simulated",
         createdAt: new Date().toISOString(),
       });
@@ -107,7 +137,15 @@ export class LocalDemoRepository implements PurchaseRepository {
   async updateQuote(groupKey: string, input: QuoteInput) {
     quoteSchema.parse(input);
     const s = await this.read();
-    const group = groupNeeds(s, this.catalog).find((g) => g.key === groupKey);
+    const [origin, productId, date, mode] = groupKey.split("|");
+    const product = this.catalog.find((p) => p.id === productId);
+    const group =
+      groupNeeds(s, this.catalog).find((g) => g.key === groupKey) ??
+      (product &&
+      origin === "simulated" &&
+      (mode === "delivery" || mode === "pickup")
+        ? { product, date, mode, quote: undefined }
+        : undefined);
     if (!group) throw new Error("Grupo no encontrado");
     if (!group.quote) {
       s.quotes.push({

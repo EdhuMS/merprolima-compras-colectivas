@@ -39,3 +39,13 @@ El historial empieza al aplicar la migración del 13/10 y registra cambios mater
 Objetivo candidato: sacos solicitados de una presentación durante la semana siguiente. Son necesidades declaradas, no ventas. Excluir simulados y retiros, deduplicar UUID y distinguir cero de faltante. Revisar cobertura y reconstruir información disponible al corte usando revisiones, sin eventos futuros.
 
 Partición temporal, baseline de última semana o promedio disponible, MAE y WAPE con denominador positivo. La historia real suficiente está pendiente. Tres entrevistas no crean una serie semanal suficiente para ML.
+
+
+## Extensión: flujo coordinado — 14/10/2026
+
+- Participation.status admite confirmed, declined y pending. Solo confirmed con firma vigente cuenta como confirmación activa.
+- purchase_api(decide) recibe qty opcional: es obligatorio si el comprador no tiene una necesidad compatible. Cantidad entera 1–500; origen y puesto se toman del contexto autenticado. La inserción del pedido y la decisión son atómicas.
+- Si el volumen o los gastos no permiten confirmar, la decisión se guarda pending. Un cambio de volumen o cotización invalida la firma de decisiones previas y exige revisión. Solo compradores pueden decidir o modificar necesidades propias.
+- read incluye groupVersions para cotizaciones sin necesidades, lo que permite mostrar compras publicadas con volumen cero.
+- quote sigue siendo exclusivo de coordinación. Al guardar una cotización se publica la propuesta (producto/fecha/modalidad/origen); el borrador del formulario no se persiste hasta publicar.
+- read entrega necesidades ajenas agregadas por producto, fecha y modalidad; no expone identidades de comerciantes. El coordinador consulta esta demanda en Necesidades recibidas.

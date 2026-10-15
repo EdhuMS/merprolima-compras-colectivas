@@ -46,6 +46,7 @@ export class SupabasePurchaseRepository implements PurchaseRepository {
     groupKey: string,
     _stall: string,
     decision: "confirmed" | "declined",
+    qty?: number,
   ) {
     const g = this.currentGroup(groupKey);
     await this.call("decide", {
@@ -54,6 +55,7 @@ export class SupabasePurchaseRepository implements PurchaseRepository {
       mode: g.mode,
       decision,
       expectedSignature: signature(g),
+      ...(qty !== undefined ? { qty } : {}),
     });
   }
   async updateQuote(groupKey: string, input: QuoteInput) {
@@ -86,7 +88,24 @@ export class SupabasePurchaseRepository implements PurchaseRepository {
     const group = groupNeeds(this.snapshot, this.snapshot.products ?? []).find(
       (g) => g.key === key,
     );
-    if (!group) throw new Error("El grupo cambió. Recarga los datos");
-    return group;
+    if (group) return group;
+    const [origin, productId, date, mode] = key.split("|");
+    const product = this.snapshot.products?.find((p) => p.id === productId);
+    if (
+      !product ||
+      origin !== this.snapshot.identity?.origin ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(date) ||
+      !["delivery", "pickup"].includes(mode)
+    )
+      throw new Error("El grupo cambió. Recarga los datos");
+    return {
+      key,
+      product,
+      date,
+      mode,
+      origin,
+      needs: [],
+      total: 0,
+    } as import("../domain/model").Group;
   }
 }

@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { ProposalDetail } from "./ProposalDetail";
 import type { UseFormReturn } from "react-hook-form";
 import type { UseMutationResult } from "@tanstack/react-query";
 import {
@@ -44,6 +46,8 @@ type Props = {
   resetOpen: boolean;
   setResetOpen: (v: boolean) => void;
   originLabel: string;
+  onSuccess: (message: string) => void;
+  simulatedOrigin: boolean;
 };
 export function PurchaseDialogs({
   formOpen,
@@ -68,12 +72,15 @@ export function PurchaseDialogs({
   openQuote,
   resetOpen,
   setResetOpen,
+  onSuccess,
+  simulatedOrigin,
 }: Props) {
+  const [quoteConfirmation, setQuoteConfirmation] = useState<QuoteInput>();
   return (
     <>
       <Modal
         open={formOpen}
-        onOpenChange={setFormOpen}
+        onOpenChange={(open) => !mutate.isPending && setFormOpen(open)}
         title={editing ? "Editar necesidad" : "Nueva necesidad"}
         description="Elige el producto, la cantidad y cuándo necesitas reponerlo."
       >
@@ -92,6 +99,11 @@ export function PurchaseDialogs({
                 ),
               );
               setFormOpen(false);
+              onSuccess(
+                editing
+                  ? "Tu necesidad se actualizó correctamente."
+                  : "Tu necesidad quedó registrada. Coordinación podrá revisarla para preparar una compra colectiva.",
+              );
             } catch {
               /* mutation reports error */
             }
@@ -164,165 +176,44 @@ export function PurchaseDialogs({
       </Modal>
       <Modal
         open={!!selected && !quoteOpen}
-        onOpenChange={(v) => !v && setDetail(undefined)}
+        onOpenChange={(v) => !v && !mutate.isPending && setDetail(undefined)}
         title={selected?.product.name ?? ""}
         description={`${selected?.product.brand ?? ""} · Saco de ${selected?.product.kg ?? ""} kg`}
       >
         {selected && (
-          <div className="mt-6">
-            <div className="detail-grid">
-              <div>
-                <small>Volumen reunido</small>
-                <strong>{selected.total} sacos</strong>
-              </div>
-              <div>
-                <small>Tu cantidad</small>
-                <strong>{cmp?.qty ?? 0} sacos</strong>
-              </div>
-              <div>
-                <small>Fecha deseada de reposición</small>
-                <strong>{dateLabel(selected.date)}</strong>
-              </div>
-              <div>
-                <small>Modalidad</small>
-                <strong>
-                  {selected.mode === "delivery"
-                    ? "Entrega en mercado"
-                    : "Recojo"}
-                </strong>
-              </div>
-            </div>
-            {cmp?.eligible ? (
-              <div className="comparison-box">
-                <div>
-                  <span>Compra individual</span>
-                  <strong>{money(cmp.individual!)}</strong>
-                </div>
-                <div>
-                  <span>Compra colectiva</span>
-                  <strong>{money(cmp.collective!)}</strong>
-                </div>
-                <div
-                  className={cn(
-                    "comparison-result",
-                    cmp.difference! < 0 && "text-red-700",
-                  )}
-                >
-                  <span>
-                    {cmp.difference! >= 0
-                      ? "Diferencia a favor estimada"
-                      : "Mayor costo colectivo"}
-                  </span>
-                  <strong>{money(Math.abs(cmp.difference!))}</strong>
-                </div>
-                <p>
-                  Incluye {money(cmp.freight!)} de transporte y reparto
-                  asignados proporcionalmente.{" "}
-                  {cmp.qty === 0 &&
-                    "Registra tu necesidad para comparar tu costo."}
-                </p>
-              </div>
-            ) : (
-              <div className="form-info mt-5">
-                <Clock size={20} />
-                <p>{cmp?.reason}. No se aplica todavía el precio colectivo.</p>
-              </div>
-            )}
-            <div className="mt-5 space-y-3 text-sm muted">
-              <p className="flex gap-2">
-                <Truck size={17} />
-                {selected.quote
-                  ? selected.quote.deliveryEstimate
-                    ? `Fecha estimada del proveedor: ${dateLabel(selected.quote.deliveryEstimate)} (sujeta a acuerdo).`
-                    : "Fecha del proveedor por definir."
-                  : "Fecha de entrega por definir."}
-              </p>
-              <p>
-                {isDemo
-                  ? "Forma de pago por acordar"
-                  : (selected.quote?.payment ?? "Forma de pago por acordar")}
-              </p>
-              <p>
-                Vigencia:{" "}
-                {selected.quote
-                  ? new Date(selected.quote.validUntil).toLocaleDateString(
-                      "es-PE",
-                    )
-                  : "Por definir"}{" "}
-                · {status(selected)}
-              </p>
-            </div>
-            {role === "coordinator" && (
-              <Button className="mt-5" variant="outline" onClick={openQuote}>
-                <Pencil size={15} />
-                {selected.quote ? "Editar cotización" : "Registrar cotización"}
-              </Button>
-            )}
-            {mutate.error && (
-              <p role="alert" className="error mt-4">
-                {mutate.error.message}
-              </p>
-            )}
-            <div className="flex gap-3 mt-6">
-              <Button
-                disabled={
-                  !cmp?.eligible ||
-                  !cmp?.qty ||
-                  mutate.isPending ||
-                  status(selected) === "Participación confirmada"
-                }
-                onClick={() =>
-                  mutate.mutate(() =>
-                    repository.decide(selected.key, stall, "confirmed"),
-                  )
-                }
-              >
-                <Check size={17} />
-                {status(selected) === "Participación confirmada"
-                  ? "Participación confirmada"
-                  : "Confirmar participación"}
-              </Button>
-              <Button
-                variant="outline"
-                disabled={!cmp?.qty || mutate.isPending}
-                onClick={() =>
-                  mutate.mutate(() =>
-                    repository.decide(selected.key, stall, "declined"),
-                  )
-                }
-              >
-                {status(selected) === "Participación confirmada" ||
-                status(selected) === "Requiere nueva confirmación"
-                  ? "Retirar participación"
-                  : "No participar"}
-              </Button>
-            </div>
-          </div>
+          <ProposalDetail
+            key={selected.key}
+            group={selected}
+            stall={stall}
+            coordinator={role === "coordinator"}
+            repository={repository}
+            mutate={mutate}
+            status={status(selected)}
+            onClose={() => setDetail(undefined)}
+            onSuccess={onSuccess}
+            onEditQuote={openQuote}
+          />
         )}
       </Modal>
       <Modal
         open={quoteOpen}
-        onOpenChange={setQuoteOpen}
+        onOpenChange={(open) => !mutate.isPending && setQuoteOpen(open)}
         title="Condiciones de la propuesta"
         description="Actualiza precios y gastos. Los cambios requieren volver a confirmar la participación."
       >
         <form
           className="form"
-          onSubmit={quoteForm.handleSubmit(async (input) => {
-            if (!selected) return;
-            try {
-              await mutate.mutateAsync(() =>
-                repository.updateQuote(selected.key, {
-                  ...input,
-                  validUntil: input.validUntil + "T23:59:59-05:00",
-                }),
-              );
-              setQuoteOpen(false);
-            } catch {
-              /* mutation reports error */
-            }
+          onSubmit={quoteForm.handleSubmit((input) => {
+            mutate.reset();
+            setQuoteConfirmation(input);
           })}
         >
+          {!!Object.keys(quoteForm.formState.errors).length && (
+            <p className="error" role="alert">
+              Revisa precios, mínimo, vigencia y condición de pago antes de
+              continuar.
+            </p>
+          )}
           <div className="grid grid-cols-2 gap-4">
             {(
               [
@@ -369,7 +260,7 @@ export function PurchaseDialogs({
             Deja vacío un gasto desconocido. Cero significa que está confirmado
             sin costo. No se podrá confirmar con gastos por definir.
           </p>
-          {!isDemo && (
+          {!simulatedOrigin && (
             <>
               <label>
                 Documento de respaldo
@@ -417,9 +308,69 @@ export function PurchaseDialogs({
             <textarea {...quoteForm.register("payment")} />
           </label>
           <Button type="submit" disabled={mutate.isPending}>
-            Guardar condiciones
+            {selected?.quote
+              ? "Revisar y guardar condiciones"
+              : "Revisar y publicar compra"}
           </Button>
         </form>
+      </Modal>
+      <Modal
+        open={!!quoteConfirmation}
+        onOpenChange={(v) => {
+          if (!v && !mutate.isPending) setQuoteConfirmation(undefined);
+        }}
+        title={
+          selected?.quote
+            ? "¿Actualizar la propuesta?"
+            : "¿Publicar compra colectiva?"
+        }
+        description="Los clientes podrán ver esta propuesta y sumar sus pedidos. Las modificaciones de precio o volumen requerirán revisar las confirmaciones."
+      >
+        {mutate.error && (
+          <p className="error mt-4" role="alert">
+            {mutate.error.message}
+          </p>
+        )}
+        <div className="flex flex-wrap gap-3 mt-6">
+          <Button
+            variant="outline"
+            disabled={mutate.isPending}
+            onClick={() => setQuoteConfirmation(undefined)}
+          >
+            Volver a editar
+          </Button>
+          <Button
+            disabled={mutate.isPending}
+            onClick={async () => {
+              if (!selected || !quoteConfirmation) return;
+              try {
+                await mutate.mutateAsync(() =>
+                  repository.updateQuote(selected.key, {
+                    ...quoteConfirmation,
+                    validUntil:
+                      quoteConfirmation.validUntil + "T23:59:59-05:00",
+                  }),
+                );
+                setQuoteConfirmation(undefined);
+                setQuoteOpen(false);
+                setDetail(undefined);
+                onSuccess(
+                  selected.quote
+                    ? "La propuesta se actualizó correctamente. Los clientes podrán revisar sus condiciones."
+                    : "Compra colectiva publicada. Los clientes ya pueden verla y sumarse con su cantidad.",
+                );
+              } catch {
+                /* Keep the confirmation open. */
+              }
+            }}
+          >
+            {mutate.isPending
+              ? "Guardando…"
+              : selected?.quote
+                ? "Guardar cambios"
+                : "Publicar compra"}
+          </Button>
+        </div>
       </Modal>
       <Modal
         open={resetOpen}

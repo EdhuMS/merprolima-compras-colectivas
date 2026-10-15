@@ -1,8 +1,25 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { groupNeeds, comparison, signature, needSchema } from "./model";
+import {
+  groupNeeds,
+  comparison,
+  signature,
+  needSchema,
+  joiningPreview,
+} from "./model";
 import { demoSeed, products } from "./test-fixtures";
 import { LocalDemoRepository } from "../data/repository";
 describe("Reglas de compras colectivas", () => {
+  it("previsualiza el pedido nuevo sin alterar el grupo ni reutilizar un reparto anterior", () => {
+    const group = groupNeeds(demoSeed(), products)[0];
+    group.serverFreight = 999;
+    const total = group.total;
+    const preview = joiningPreview(group, "NUEVO", 2);
+    expect(preview.total).toBe(total + 2);
+    expect(group.total).toBe(total);
+    expect(group.needs.some((n) => n.stall === "NUEVO")).toBe(false);
+    expect(preview.serverFreight).toBeUndefined();
+    expect(comparison(preview, "NUEVO").qty).toBe(2);
+  });
   it("separa productos y presentaciones", () => {
     const s = demoSeed();
     expect(groupNeeds(s, products).map((g) => g.total)).toEqual([12, 5, 2]);
@@ -108,14 +125,34 @@ describe("Persistencia demo", () => {
       signature(groupNeeds(next, products)[0]),
     );
   });
-  it("impide confirmar sin necesidad y sin volumen suficiente", async () => {
+  it("exige cantidad al sumarse y deja pendiente el pedido sin volumen suficiente", async () => {
     const r = new LocalDemoRepository(demoSeed, products);
     const groups = groupNeeds(await r.read(), products);
     await expect(
       r.decide(groups[0].key, "DEMO-04", "confirmed"),
     ).rejects.toThrow();
-    await expect(
-      r.decide(groups[1].key, "DEMO-01", "confirmed"),
-    ).rejects.toThrow();
+    await r.decide(groups[1].key, "DEMO-01", "confirmed");
+    expect((await r.read()).participations[0].status).toBe("pending");
+  });
+  it("permite sumarse sin necesidad previa y evita duplicar el pedido al repetir", async () => {
+    const r = new LocalDemoRepository(demoSeed, products);
+    const group = groupNeeds(await r.read(), products)[0];
+    await r.decide(group.key, "NUEVO-CLIENTE", "confirmed", 2);
+    await r.decide(group.key, "NUEVO-CLIENTE", "confirmed", 2);
+    const store = await r.read();
+    expect(store.needs.filter((n) => n.stall === "NUEVO-CLIENTE")).toHaveLength(
+      1,
+    );
+    expect(
+      store.participations.filter((p) => p.stall === "NUEVO-CLIENTE"),
+    ).toHaveLength(1);
+    expect(store.participations[0].status).toBe("confirmed");
+  });
+  it("conserva la compra publicada aunque todavía nadie haya solicitado sacos", () => {
+    const store = demoSeed();
+    store.needs = [];
+    const groups = groupNeeds(store, products);
+    expect(groups.length).toBeGreaterThan(0);
+    expect(groups.every((g) => g.total === 0 && !!g.quote)).toBe(true);
   });
 });

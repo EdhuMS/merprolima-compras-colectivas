@@ -1,3 +1,5 @@
+import { Modal } from "../../../components/ui/dialog";
+import { ProposalComposer } from "./ProposalComposer";
 import { BrandLogo } from "../../../shared/ui/BrandLogo";
 import {
   WorkspaceSidebar,
@@ -88,6 +90,10 @@ export function App({
   const [editing, setEditing] = useState<Need>();
   const [detail, setDetail] = useState<string>();
   const [quoteOpen, setQuoteOpen] = useState(false);
+  const [draft, setDraft] = useState<Group>();
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [success, setSuccess] = useState("");
+  const [withdrawing, setWithdrawing] = useState<Need>();
   const [notice, setNotice] = useState("");
   const [resetOpen, setResetOpen] = useState(false);
   const { query, mutation: mutate } = usePurchases(repository, workspaceKey);
@@ -117,7 +123,11 @@ export function App({
   const mine =
     query.data?.needs.filter((n) => n.stall === stall && n.status === "open") ??
     [];
-  const selected = groups.find((g) => g.key === detail);
+  const published = groups.filter((g) => !!g.quote);
+  const demand = groups.filter((g) => g.total > 0);
+  const selected =
+    groups.find((g) => g.key === detail) ??
+    (draft?.key === detail ? draft : undefined);
   const cmp = selected ? comparison(selected, stall) : undefined;
   const validGroups = groups.filter(
     (g) => comparison(g, stall).eligible,
@@ -153,16 +163,19 @@ export function App({
     );
     setFormOpen(true);
   };
-  const openQuote = () => {
-    if (!selected) return;
-    const q = selected.quote ?? {
-      individual: 1,
-      collective: 1,
+  const openQuote = (group = selected) => {
+    if (!group) return;
+    const q = group.quote ?? {
+      individual: 0,
+      collective: 0,
       min: 1,
       transport: null,
       distribution: null,
       individualTransport: null,
-      evidenceType: isDemo ? ("simulated" as const) : ("unclassified" as const),
+      evidenceType:
+        isDemo || query.data?.identity?.origin === "simulated"
+          ? ("simulated" as const)
+          : ("unclassified" as const),
       deliveryEstimate: null,
       validUntil: new Date(Date.now() + 86400000).toISOString(),
       payment: "",
@@ -180,7 +193,7 @@ export function App({
         timeZone: "America/Lima",
       }),
       payment: isDemo ? "Por acordar con proveedor" : q.payment,
-      sourceRef: q.sourceRef ?? "",
+      sourceRef: q.sourceRef || `APP:QUOTE:${group.key}`,
       supplier: isDemo
         ? q.supplier.replace(" · caso de testers", "")
         : q.supplier,
@@ -208,14 +221,18 @@ export function App({
     return p?.signature === signature(g)
       ? p.status === "confirmed"
         ? "Participación confirmada"
-        : "Sin participación"
-      : p
-        ? "Requiere nueva confirmación"
-        : c.eligible
-          ? "Lista para comparar"
-          : g.quote && g.total < g.quote.min
-            ? "Reuniendo volumen"
-            : "Revisar condiciones";
+        : p.status === "pending"
+          ? "Pedido pendiente de confirmación"
+          : "Sin participación"
+      : p?.status === "declined"
+        ? "Sin participación"
+        : p
+          ? "Requiere nueva confirmación"
+          : c.eligible
+            ? "Lista para comparar"
+            : g.quote && g.total < g.quote.min
+              ? "Reuniendo volumen"
+              : "Revisar condiciones";
   };
   const nav: { id: View; title: string; icon: typeof LayoutDashboard }[] =
     isCoordinator
@@ -225,11 +242,10 @@ export function App({
             title: "Panel de coordinación",
             icon: LayoutDashboard,
           },
+          { id: "needs", title: "Necesidades recibidas", icon: ClipboardList },
           { id: "groups", title: "Gestionar compras", icon: ShoppingBasket },
           { id: "catalog", title: "Catálogo de productos", icon: Package },
           { id: "evidence", title: "Reportes del mercado", icon: ShieldCheck },
-          { id: "needs", title: "Mis pedidos propios", icon: ClipboardList },
-          { id: "participations", title: "Mis participaciones", icon: Check },
         ]
       : [
           { id: "overview", title: "Resumen", icon: LayoutDashboard },
@@ -249,8 +265,10 @@ export function App({
           "Reúne necesidades, compara condiciones y decide con claridad.",
         ],
     needs: [
-      isCoordinator ? "Mis pedidos propios." : "Tus necesidades de compra.",
-      "Registra lo que necesitas reponer. Tú decides cuándo participar.",
+      isCoordinator ? "Necesidades recibidas." : "Tus necesidades de compra.",
+      isCoordinator
+        ? "Revisa la demanda de los clientes y prepara propuestas compatibles."
+        : "Registra lo que necesitas reponer. Coordinación revisará tu solicitud.",
     ],
     groups: isCoordinator
       ? [
@@ -380,20 +398,33 @@ export function App({
               <h1>{headings[view][0]}</h1>
               <p className="mt-3 muted">{headings[view][1]}</p>
             </div>
-            {["overview", "groups", "needs"].includes(view) && (
+            {!isCoordinator && view === "needs" && (
               <Button
                 disabled={!products.length || query.isError}
                 onClick={() => openForm()}
               >
-                <Plus size={18} /> {isCoordinator ? "Nuevo pedido propio" : "Nueva necesidad"}
+                <Plus size={18} /> Nueva necesidad
               </Button>
             )}
+            {isCoordinator &&
+              ["overview", "groups", "needs"].includes(view) && (
+                <Button
+                  disabled={!products.length || query.isError}
+                  onClick={() => setComposerOpen(true)}
+                >
+                  <Plus size={18} />
+                  Crear compra colectiva
+                </Button>
+              )}
           </div>
           {view === "catalog" && isCoordinator && (
             <div className="mb-4">
               <CatalogManager
                 repository={repository}
-                onSaved={() => query.refetch()}
+                onSaved={() => {
+                  query.refetch();
+                  setSuccess("Producto agregado al catálogo correctamente.");
+                }}
               />
             </div>
           )}
@@ -428,7 +459,7 @@ export function App({
               </select>
             </label>
           </div>
-          {(notice || mutate.isError || mutate.isSuccess) && (
+          {(notice || mutate.isError) && (
             <div role="status" className="notice">
               {notice ||
                 mutate.error?.message ||
@@ -559,22 +590,29 @@ export function App({
                     </Button>
                   </div>
                   <section className="cards-grid">
-                    {groups.slice(0, 3).map(card)}
+                    {published.slice(0, 3).map(card)}
                   </section>
-                  {!groups.length && (
+                  {!published.length && (
                     <div className="empty workspace-empty">
                       <ShoppingBasket size={32} />
-                      <h2>Organiza tu primera reposición</h2>
+                      <h2>
+                        {isCoordinator
+                          ? "Prepara la primera propuesta"
+                          : "Aún no hay compras publicadas"}
+                      </h2>
                       <p>
-                        Registra una necesidad para coordinarla con otros
-                        puestos.
+                        {isCoordinator
+                          ? "Consulta las necesidades recibidas y publica una compra colectiva."
+                          : "Puedes registrar tu necesidad para que coordinación prepare una propuesta."}
                       </p>
                       <Button
                         disabled={!products.length}
-                        onClick={() => openForm()}
+                        onClick={() => setView("needs")}
                       >
                         <Plus size={17} />
-                        Registrar necesidad
+                        {isCoordinator
+                          ? "Ver necesidades recibidas"
+                          : "Ir a mis necesidades"}
                       </Button>
                     </div>
                   )}
@@ -595,23 +633,28 @@ export function App({
               {view === "groups" && (
                 <>
                   <div className="section-heading">
-                    <h2>{groups.length} propuestas disponibles</h2>
+                    <h2>{published.length} compras publicadas</h2>
                     <span className="text-xs muted">
                       Entrega o recojo compatibles
                     </span>
                   </div>
-                  <section className="cards-grid">{groups.map(card)}</section>
-                  {!groups.length && (
+                  <section className="cards-grid">
+                    {published.map(card)}
+                  </section>
+                  {!published.length && (
                     <div className="empty">
                       <ShoppingBasket />
-                      <h2>No hay necesidades activas</h2>
-                      <p>Registra la primera para iniciar una agrupación.</p>
-                      <Button
-                        disabled={!products.length || query.isError}
-                        onClick={() => openForm()}
-                      >
-                        Registrar necesidad
-                      </Button>
+                      <h2>No hay compras publicadas</h2>
+                      <p>
+                        {isCoordinator
+                          ? "Revisa las necesidades recibidas o crea una nueva propuesta."
+                          : "Las propuestas aparecerán cuando coordinación publique una compra colectiva."}
+                      </p>
+                      {isCoordinator && (
+                        <Button onClick={() => setView("needs")}>
+                          Ver necesidades recibidas
+                        </Button>
+                      )}
                     </div>
                   )}
                 </>
@@ -646,7 +689,31 @@ export function App({
                   onBrowse={() => setView("groups")}
                 />
               )}
-              {view === "needs" && (
+              {view === "needs" && isCoordinator && (
+                <section className="white-panel">
+                  <div className="section-heading">
+                    <div>
+                      <h2>Demanda de los clientes</h2>
+                      <p className="text-sm muted mt-1">
+                        Agrupada por producto, fecha y modalidad. Solo los
+                        clientes registran cantidades.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="cards-grid">{demand.map(card)}</div>
+                  {!demand.length && (
+                    <div className="empty">
+                      <ClipboardList />
+                      <h3>Aún no hay necesidades recibidas</h3>
+                      <p>
+                        Puedes preparar una propuesta desde Crear compra
+                        colectiva.
+                      </p>
+                    </div>
+                  )}
+                </section>
+              )}
+              {view === "needs" && !isCoordinator && (
                 <section className="white-panel">
                   <div className="section-heading">
                     <h2>
@@ -703,11 +770,10 @@ export function App({
                                       size="sm"
                                       variant="destructive"
                                       disabled={mutate.isPending}
-                                      onClick={() =>
-                                        mutate.mutate(() =>
-                                          repository.withdraw(n.id, stall),
-                                        )
-                                      }
+                                      onClick={() => {
+                                        mutate.reset();
+                                        setWithdrawing(n);
+                                      }}
                                     >
                                       Retirar
                                     </Button>
@@ -778,11 +844,76 @@ export function App({
         dateLabel={dateLabel}
         status={status}
         role={role}
-        openQuote={openQuote}
+        openQuote={() => openQuote()}
         resetOpen={resetOpen}
         setResetOpen={setResetOpen}
         originLabel={originLabel}
+        simulatedOrigin={isDemo || query.data?.identity?.origin === "simulated"}
+        onSuccess={setSuccess}
       />
+      {isCoordinator && (
+        <ProposalComposer
+          open={composerOpen}
+          onOpenChange={setComposerOpen}
+          products={products}
+          origin={query.data?.identity?.origin ?? "simulated"}
+          onContinue={(group) => {
+            setDraft(group);
+            setDetail(group.key);
+            openQuote(groups.find((g) => g.key === group.key) ?? group);
+          }}
+        />
+      )}
+      <Modal
+        open={!!success}
+        onOpenChange={(open) => !open && setSuccess("")}
+        title="Operación completada"
+        description={success}
+      >
+        <div className="flex justify-end mt-6">
+          <Button onClick={() => setSuccess("")}>Entendido</Button>
+        </div>
+      </Modal>
+      <Modal
+        open={!!withdrawing}
+        onOpenChange={(open) => {
+          if (!open && !mutate.isPending) setWithdrawing(undefined);
+        }}
+        title="¿Retirar esta necesidad?"
+        description="Se retirará tu solicitud de reposición y cambiará el volumen del grupo. Las participaciones anteriores deberán revisarse."
+      >
+        {mutate.error && (
+          <p className="error mt-4" role="alert">
+            {mutate.error.message}
+          </p>
+        )}
+        <div className="flex flex-wrap gap-3 mt-6">
+          <Button
+            variant="outline"
+            disabled={mutate.isPending}
+            onClick={() => setWithdrawing(undefined)}
+          >
+            Cancelar
+          </Button>
+          <Button
+            disabled={mutate.isPending}
+            onClick={async () => {
+              if (!withdrawing) return;
+              try {
+                await mutate.mutateAsync(() =>
+                  repository.withdraw(withdrawing.id, stall),
+                );
+                setWithdrawing(undefined);
+                setSuccess("Tu necesidad fue retirada correctamente.");
+              } catch {
+                /* Keep confirmation open. */
+              }
+            }}
+          >
+            {mutate.isPending ? "Retirando…" : "Sí, retirar necesidad"}
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }

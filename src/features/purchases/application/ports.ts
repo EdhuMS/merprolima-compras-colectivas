@@ -8,6 +8,7 @@ export interface PurchaseRepository {
     groupKey: string,
     stall: string,
     decision: "confirmed" | "declined",
+    qty?: number,
   ): Promise<void>;
   updateQuote(groupKey: string, input: QuoteInput): Promise<void>;
   reset?(): Promise<void>;

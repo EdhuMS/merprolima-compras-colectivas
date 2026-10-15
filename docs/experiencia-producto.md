@@ -26,3 +26,18 @@ Las capturas del informe y las diapositivas anteriores corresponden al corte pre
 - Coordinador: Panel de coordinación, Gestionar compras, Catálogo de productos y Reportes del mercado, además de sus pedidos y participaciones propios. El panel cuenta agrupaciones, cotizaciones sin registrar o vencidas y sacos reunidos, sin presentar los registros agregados como pedidos individuales identificados.
 - La gestión y los reportes mantienen los permisos existentes del servidor. El cambio de menú no concede permisos nuevos.
 - Verificación con cuentas de presentación: navegación móvil por rol, catálogo del coordinador, alta de pedido sin código manual, aviso de reconfirmación por cambio de volumen, confirmación y retiro desde Mis participaciones. Compilación y 20 pruebas existentes correctas.
+
+
+## Flujo vigente: coordinación exclusiva (sustituye el rol combinado anterior)
+
+Autorizado por el usuario para ambas cuentas de coordinación el 14/10/2026. El coordinador solo revisa necesidades recibidas, publica propuestas con cotización, administra catálogo y consulta reportes. Mis necesidades y Mis participaciones pertenecen exclusivamente al comprador. Combinar ambos papeles se reserva para APF3.
+
+Las necesidades se agrupan como demanda y no aparecen por sí solas en Compras colectivas. La cotización registrada por coordinación constituye la propuesta publicada; una propuesta sin solicitudes sigue visible con volumen cero. No se requiere crear un pedido ficticio del coordinador.
+
+El comprador puede sumarse sin solicitud previa: introduce la cantidad, revisa la confirmación y el servidor registra su necesidad y decisión en una transacción. Si no alcanza el mínimo o faltan gastos, queda pending; si reúne las condiciones, queda confirmed. El servidor calcula la firma después de incorporar la cantidad y valida la versión leída antes de modificar datos. La misma confirmación no duplica pedidos. El origen del registro procede del puesto autenticado.
+
+Confirmar/retirar participación, retirar necesidad y publicar/editar propuesta tienen confirmación explícita. Tras guardar se cierran los formularios y aparece un modal de éxito. Un error conserva la pantalla de confirmación y muestra el motivo. La carga deshabilita los botones para evitar envíos repetidos.
+
+Las necesidades anteriores del coordinador se retiraron únicamente en Merprolima · Presentación; no se borró historial ni se modificaron solicitudes o participaciones reales. Las entrevistas reales conservan su control de acceso.
+
+Verificación de cierre del flujo: 23 pruebas automáticas correctas; prueba transaccional del servidor correcta y revertida; publicación desde Necesidades recibidas, incorporación sin pedido previo, confirmación y retiro comprobados en producción con cuentas de presentación. Diálogos revisados a 375 px (343 px de ancho, margen de 16 px, documento sin desbordamiento horizontal). Ambas cuentas de coordinador bloqueadas para comprar; ocho entrevistas reales preservadas.

@@ -50,7 +50,7 @@ export type Participation = {
   stall: string;
   groupKey: string;
   signature: string;
-  status: "confirmed" | "declined";
+  status: "confirmed" | "declined" | "pending";
   createdAt: string;
   origin: Origin;
 };
@@ -142,6 +142,22 @@ export function groupNeeds(store: Store, products: Product[]): Group[] {
     group.total += need.qty;
     map.set(key, group);
   }
+  for (const quote of store.quotes) {
+    const key = [quote.origin, quote.productId, quote.date, quote.mode].join(
+      "|",
+    );
+    const product = products.find((p) => p.id === quote.productId);
+    if (product && !map.has(key))
+      map.set(key, {
+        key,
+        product,
+        needs: [],
+        total: 0,
+        date: quote.date,
+        mode: quote.mode,
+        origin: quote.origin,
+      });
+  }
   return [...map.values()].map((g) => ({
     ...g,
     version: store.groupVersions?.[g.key],
@@ -162,6 +178,33 @@ export function signature(group: Group) {
     group.quote?.version,
     group.needs.map((n) => [n.id, n.qty]).sort(),
   ]);
+}
+export function joiningPreview(
+  group: Group,
+  stall: string,
+  qty: number,
+): Group {
+  if (group.needs.some((n) => n.stall === stall)) return group;
+  const amount = Number.isInteger(qty) && qty >= 1 && qty <= 500 ? qty : 0;
+  return {
+    ...group,
+    total: group.total + amount,
+    serverFreight: undefined,
+    needs: [
+      ...group.needs,
+      {
+        id: "preview",
+        stall,
+        productId: group.product.id,
+        qty: amount,
+        date: group.date,
+        mode: group.mode,
+        origin: group.origin,
+        status: "open",
+        createdAt: "",
+      },
+    ],
+  };
 }
 export function comparison(group: Group, stall: string, now = new Date()) {
   const q = group.quote;
