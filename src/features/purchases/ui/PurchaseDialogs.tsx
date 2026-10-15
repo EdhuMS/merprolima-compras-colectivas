@@ -174,29 +174,22 @@ export function PurchaseDialogs({
           </Button>
         </form>
       </Modal>
+      {selected && !quoteOpen && (
+        <ProposalDetail
+          key={selected.key}
+          group={selected}
+          stall={stall}
+          coordinator={role === "coordinator"}
+          repository={repository}
+          mutate={mutate}
+          status={status(selected)}
+          onClose={() => setDetail(undefined)}
+          onSuccess={onSuccess}
+          onEditQuote={openQuote}
+        />
+      )}
       <Modal
-        open={!!selected && !quoteOpen}
-        onOpenChange={(v) => !v && !mutate.isPending && setDetail(undefined)}
-        title={selected?.product.name ?? ""}
-        description={`${selected?.product.brand ?? ""} · Saco de ${selected?.product.kg ?? ""} kg`}
-      >
-        {selected && (
-          <ProposalDetail
-            key={selected.key}
-            group={selected}
-            stall={stall}
-            coordinator={role === "coordinator"}
-            repository={repository}
-            mutate={mutate}
-            status={status(selected)}
-            onClose={() => setDetail(undefined)}
-            onSuccess={onSuccess}
-            onEditQuote={openQuote}
-          />
-        )}
-      </Modal>
-      <Modal
-        open={quoteOpen}
+        open={quoteOpen && !quoteConfirmation}
         onOpenChange={(open) => !mutate.isPending && setQuoteOpen(open)}
         title="Condiciones de la propuesta"
         description="Actualiza precios y gastos. Los cambios requieren volver a confirmar la participación."
