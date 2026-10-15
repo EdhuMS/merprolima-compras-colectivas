@@ -7,12 +7,14 @@ export function GroupCard({
   stall,
   status,
   onOpen,
+  management = false,
 }: {
   g: Group;
   stall: string;
   status: (g: Group) => string;
   onOpen: (key: string) => void;
   isDemo: boolean;
+  management?: boolean;
 }) {
   const c = comparison(g, stall);
   return (
@@ -28,7 +30,21 @@ export function GroupCard({
         <span
           className={cn("badge", c.eligible ? "badge-green" : "badge-amber")}
         >
-          {status(g)}
+          {management
+            ? !g.quote
+              ? "Por cotizar"
+              : new Date(g.quote.validUntil) < new Date()
+                ? "Cotización vencida"
+                : g.total < g.quote.min
+                  ? "Reuniendo volumen"
+                  : [
+                        g.quote.transport,
+                        g.quote.distribution,
+                        g.quote.individualTransport,
+                      ].some((v) => v === null)
+                    ? "Completar condiciones"
+                    : "Lista para coordinar"
+            : status(g)}
         </span>
       </div>
       <div className="mt-5">
@@ -80,7 +96,8 @@ export function GroupCard({
           </p>
         </div>
         <Button variant="ghost" size="sm" onClick={() => onOpen(g.key)}>
-          Ver propuesta <ArrowUpRight size={17} />
+          {management ? "Gestionar propuesta" : "Ver propuesta"}{" "}
+          <ArrowUpRight size={17} />
         </Button>
       </div>
     </article>

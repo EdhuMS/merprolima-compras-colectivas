@@ -17,3 +17,12 @@ Compilación y 20 pruebas de reglas aprobadas. Revisión en navegador: 320, 375,
 Despliegue READY: dpl_4HbWyTaUmgqqhxHPjS6JRgzo7Arg. URL: https://merprolima-compras-colectivas.vercel.app/.
 
 Las capturas del informe y las diapositivas anteriores corresponden al corte previo de interfaz; se conservan como evidencia histórica. Esta actualización se concentra en el producto web mientras el grupo revisa los documentos.
+
+## Mejora de recorridos por rol — 14/10/2026
+
+- Cliente: Resumen, Mis necesidades, Compras colectivas, Mis participaciones y Mis reportes.
+- Mis participaciones conserva las decisiones propias y permite filtrar confirmadas, por revisar y sin participación. Los cambios en la propuesta exigen nueva confirmación. Las propuestas sin necesidades activas se mantienen como referencia sin botón de acción.
+- Registro de necesidades: solo producto, cantidad, fecha y modalidad. La referencia se genera como APP:<identificador del pedido> al guardar; al editar se conserva la referencia existente. No se interpreta como evidencia de una entrevista.
+- Coordinador: Panel de coordinación, Gestionar compras, Catálogo de productos y Reportes del mercado, además de sus pedidos y participaciones propios. El panel cuenta agrupaciones, cotizaciones sin registrar o vencidas y sacos reunidos, sin presentar los registros agregados como pedidos individuales identificados.
+- La gestión y los reportes mantienen los permisos existentes del servidor. El cambio de menú no concede permisos nuevos.
+- Verificación con cuentas de presentación: navegación móvil por rol, catálogo del coordinador, alta de pedido sin código manual, aviso de reconfirmación por cambio de volumen, confirmación y retiro desde Mis participaciones. Compilación y 20 pruebas existentes correctas.

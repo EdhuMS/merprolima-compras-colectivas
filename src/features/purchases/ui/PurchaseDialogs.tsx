@@ -81,7 +81,15 @@ export function PurchaseDialogs({
           onSubmit={form.handleSubmit(async (input) => {
             try {
               await mutate.mutateAsync(() =>
-                repository.saveNeed(input, stall, needRequestId),
+                repository.saveNeed(
+                  {
+                    ...input,
+                    sourceRef:
+                      input.sourceRef?.trim() || `APP:${needRequestId}`,
+                  },
+                  stall,
+                  needRequestId,
+                ),
               );
               setFormOpen(false);
             } catch {
@@ -137,12 +145,6 @@ export function PurchaseDialogs({
               <option value="pickup">Recojo</option>
             </select>
           </label>
-          {!isDemo && (
-            <label>
-              Fuente o código de registro
-              <input required {...form.register("sourceRef")} />
-            </label>
-          )}
           <div className="form-info">
             <ShieldCheck size={18} />
             <p>
@@ -263,7 +265,12 @@ export function PurchaseDialogs({
             )}
             <div className="flex gap-3 mt-6">
               <Button
-                disabled={!cmp?.eligible || !cmp?.qty || mutate.isPending}
+                disabled={
+                  !cmp?.eligible ||
+                  !cmp?.qty ||
+                  mutate.isPending ||
+                  status(selected) === "Participación confirmada"
+                }
                 onClick={() =>
                   mutate.mutate(() =>
                     repository.decide(selected.key, stall, "confirmed"),
@@ -271,7 +278,9 @@ export function PurchaseDialogs({
                 }
               >
                 <Check size={17} />
-                Confirmar participación
+                {status(selected) === "Participación confirmada"
+                  ? "Participación confirmada"
+                  : "Confirmar participación"}
               </Button>
               <Button
                 variant="outline"
@@ -282,7 +291,10 @@ export function PurchaseDialogs({
                   )
                 }
               >
-                Rechazar
+                {status(selected) === "Participación confirmada" ||
+                status(selected) === "Requiere nueva confirmación"
+                  ? "Retirar participación"
+                  : "No participar"}
               </Button>
             </div>
           </div>

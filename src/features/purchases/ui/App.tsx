@@ -10,6 +10,8 @@ import { createSnapshotExport, type ExportPeriod } from "../domain/export";
 import { downloadJson } from "../../../lib/download";
 import { EvidencePanel } from "./EvidencePanel";
 import { GroupCard } from "./GroupCard";
+import { ParticipationsPanel } from "./ParticipationsPanel";
+import { CoordinationPanel } from "./CoordinationPanel";
 import { CatalogManager } from "./CatalogManager";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -51,7 +53,13 @@ import {
   type Need,
   type Group,
 } from "../domain/model";
-type View = "overview" | "needs" | "groups" | "evidence";
+type View =
+  | "overview"
+  | "needs"
+  | "groups"
+  | "participations"
+  | "catalog"
+  | "evidence";
 const dateLabel = (date: string) =>
   new Date(date + "T12:00:00").toLocaleDateString("es-PE", {
     day: "numeric",
@@ -90,6 +98,10 @@ export function App({
   const role =
     mode === "demo" ? demoRole : (query.data?.identity?.role ?? "buyer");
   const isDemo = mode === "demo";
+  const isCoordinator = role === "coordinator";
+  useEffect(() => {
+    setView("overview");
+  }, [role]);
   const originLabel = "del mercado";
   const form = useForm<NeedInput>({
     resolver: zodResolver(needSchema),
@@ -196,7 +208,7 @@ export function App({
     return p?.signature === signature(g)
       ? p.status === "confirmed"
         ? "Participación confirmada"
-        : "Propuesta rechazada"
+        : "Sin participación"
       : p
         ? "Requiere nueva confirmación"
         : c.eligible
@@ -205,12 +217,65 @@ export function App({
             ? "Reuniendo volumen"
             : "Revisar condiciones";
   };
-  const nav = [
-    { id: "overview", title: "Resumen", icon: LayoutDashboard },
-    { id: "needs", title: "Mis necesidades", icon: ClipboardList },
-    { id: "groups", title: "Compras colectivas", icon: ShoppingBasket },
-    { id: "evidence", title: "Reportes", icon: ShieldCheck },
-  ] as const;
+  const nav: { id: View; title: string; icon: typeof LayoutDashboard }[] =
+    isCoordinator
+      ? [
+          {
+            id: "overview",
+            title: "Panel de coordinación",
+            icon: LayoutDashboard,
+          },
+          { id: "groups", title: "Gestionar compras", icon: ShoppingBasket },
+          { id: "catalog", title: "Catálogo de productos", icon: Package },
+          { id: "evidence", title: "Reportes del mercado", icon: ShieldCheck },
+          { id: "needs", title: "Mis pedidos propios", icon: ClipboardList },
+          { id: "participations", title: "Mis participaciones", icon: Check },
+        ]
+      : [
+          { id: "overview", title: "Resumen", icon: LayoutDashboard },
+          { id: "needs", title: "Mis necesidades", icon: ClipboardList },
+          { id: "groups", title: "Compras colectivas", icon: ShoppingBasket },
+          { id: "participations", title: "Mis participaciones", icon: Check },
+          { id: "evidence", title: "Mis reportes", icon: ShieldCheck },
+        ];
+  const headings: Record<View, [string, string]> = {
+    overview: isCoordinator
+      ? [
+          "Panel de coordinación.",
+          "Organiza el abastecimiento y mantén las propuestas del mercado al día.",
+        ]
+      : [
+          "Resumen de abastecimiento.",
+          "Reúne necesidades, compara condiciones y decide con claridad.",
+        ],
+    needs: [
+      isCoordinator ? "Mis pedidos propios." : "Tus necesidades de compra.",
+      "Registra lo que necesitas reponer. Tú decides cuándo participar.",
+    ],
+    groups: isCoordinator
+      ? [
+          "Gestionar compras.",
+          "Revisa el volumen y administra las cotizaciones de cada agrupación.",
+        ]
+      : [
+          "Más volumen, mejores decisiones.",
+          "Encuentra propuestas compatibles y revisa el costo completo.",
+        ],
+    participations: [
+      "Tus participaciones de compra.",
+      "Consulta lo que confirmaste, revisa los cambios o retira tu participación.",
+    ],
+    catalog: [
+      "Catálogo de productos.",
+      "Administra las marcas y presentaciones disponibles para el mercado.",
+    ],
+    evidence: [
+      isCoordinator
+        ? "Reportes del mercado."
+        : "Mis reportes de abastecimiento.",
+      "Consulta los registros y descarga el resumen del periodo.",
+    ],
+  };
   const card = (g: Group) => (
     <GroupCard
       key={g.key}
@@ -219,6 +284,7 @@ export function App({
       status={status}
       onOpen={setDetail}
       isDemo={isDemo}
+      management={isCoordinator}
     />
   );
   return (
@@ -240,7 +306,7 @@ export function App({
             if (navigation.isMobile) navigation.close();
           }}
         >
-<BrandLogo compact />
+          <BrandLogo compact />
         </a>
         <div className="market-label">
           <span className="size-2 rounded-full bg-[#b6cb81]" /> Mercado de
@@ -311,35 +377,19 @@ export function App({
           <div className="page-heading">
             <div>
               <p className="eyebrow">ABASTECIMIENTO COMPARTIDO</p>
-              <h1>
-                {view === "overview"
-                  ? "Resumen de abastecimiento."
-                  : view === "needs"
-                    ? "Tus necesidades de compra."
-                    : view === "groups"
-                      ? "Más volumen, mejores decisiones."
-                      : "Reportes de abastecimiento."}
-              </h1>
-              <p className="mt-3 muted">
-                {view === "overview"
-                  ? "Reúne necesidades, compara condiciones y decide con claridad."
-                  : view === "needs"
-                    ? "Registra lo que necesitas reponer. Tú decides cuándo participar."
-                    : view === "groups"
-                      ? "Encuentra propuestas compatibles y revisa el costo completo."
-                      : "Consulta tus registros y descarga el resumen del periodo."}
-              </p>
+              <h1>{headings[view][0]}</h1>
+              <p className="mt-3 muted">{headings[view][1]}</p>
             </div>
-            {view !== "evidence" && (
+            {["overview", "groups", "needs"].includes(view) && (
               <Button
                 disabled={!products.length || query.isError}
                 onClick={() => openForm()}
               >
-                <Plus size={18} /> Nueva necesidad
+                <Plus size={18} /> {isCoordinator ? "Nuevo pedido propio" : "Nueva necesidad"}
               </Button>
             )}
           </div>
-          {!isDemo && role === "coordinator" && (
+          {view === "catalog" && isCoordinator && (
             <div className="mb-4">
               <CatalogManager
                 repository={repository}
@@ -412,72 +462,91 @@ export function App({
             <>
               {view === "overview" && (
                 <>
-                  <section className="hero-panel">
-                    <div>
-                      <span className="hero-tag">
-                        <span className="size-1.5 bg-[#d7e8ac] rounded-full" />{" "}
-                        COORDINA SIN COMPLICARTE
-                      </span>
-                      <h2>
-                        El mismo mercado.
-                        <br />
-                        Una compra mejor pensada.
-                      </h2>
-                      <p>
-                        Tu necesidad puede sumar a la de otros puestos.
-                        <br className="hidden md:block" /> Revisa producto,
-                        volumen y condiciones antes de confirmar.
-                      </p>
-                      <button
-                        onClick={() => setView("groups")}
-                        className="hero-link"
-                      >
-                        Explorar compras colectivas <ArrowRight size={18} />
-                      </button>
-                    </div>
-                    <div className="hero-art" aria-hidden="true">
-                      <div className="art-circle" />
-                      <div className="sack sack-one">
-                        <Wheat size={45} />
-                        <span>ARROZ</span>
-                        <small>50 kg</small>
-                      </div>
-                      <div className="sack sack-two">
-                        <Leaf size={40} />
-                        <span>AZÚCAR</span>
-                        <small>50 kg</small>
-                      </div>
-                      <div className="floating-label">
-                        <Users size={17} /> El volumen suma
-                      </div>
-                    </div>
-                  </section>
-                  <section className="stats">
-                    <div>
-                      <span className="stat-icon">
-                        <ClipboardList size={19} />
-                      </span>
-                      <p>Mis necesidades activas</p>
-                      <strong>{mine.length.toString().padStart(2, "0")}</strong>
-                      <small>Reposiciones por coordinar</small>
-                    </div>
-                    <div>
-                      <span className="stat-icon">
-                        <ShoppingBasket size={19} />
-                      </span>
-                      <p>Propuestas con volumen</p>
-                      <strong>{validGroups.toString().padStart(2, "0")}</strong>
-                      <small>Revisa el costo total</small>
-                    </div>
-                    <div>
-                      <span className="stat-icon">
-                        <Check size={19} />
-                      </span>
-                      <p>Mis participaciones</p>
-                      <strong>{active.toString().padStart(2, "0")}</strong>
-                      <small>Confirmaciones vigentes</small>
-                    </div>
-                  </section>
+                  {isCoordinator ? (
+                    <CoordinationPanel
+                      groups={groups}
+                      onOpen={setDetail}
+                      onManage={() => setView("groups")}
+                    />
+                  ) : (
+                    <>
+                      <section className="hero-panel">
+                        <div>
+                          <span className="hero-tag">
+                            <span className="size-1.5 bg-[#d7e8ac] rounded-full" />{" "}
+                            COORDINA SIN COMPLICARTE
+                          </span>
+                          <h2>
+                            El mismo mercado.
+                            <br />
+                            Una compra mejor pensada.
+                          </h2>
+                          <p>
+                            Tu necesidad puede sumar a la de otros puestos.
+                            <br className="hidden md:block" /> Revisa producto,
+                            volumen y condiciones antes de confirmar.
+                          </p>
+                          <button
+                            onClick={() => setView("groups")}
+                            className="hero-link"
+                          >
+                            Explorar compras colectivas <ArrowRight size={18} />
+                          </button>
+                        </div>
+                        <div className="hero-art" aria-hidden="true">
+                          <div className="art-circle" />
+                          <div className="sack sack-one">
+                            <Wheat size={45} />
+                            <span>ARROZ</span>
+                            <small>50 kg</small>
+                          </div>
+                          <div className="sack sack-two">
+                            <Leaf size={40} />
+                            <span>AZÚCAR</span>
+                            <small>50 kg</small>
+                          </div>
+                          <div className="floating-label">
+                            <Users size={17} /> El volumen suma
+                          </div>
+                        </div>
+                      </section>
+                      <section className="stats">
+                        <div>
+                          <span className="stat-icon">
+                            <ClipboardList size={19} />
+                          </span>
+                          <p>Mis necesidades activas</p>
+                          <strong>
+                            {mine.length.toString().padStart(2, "0")}
+                          </strong>
+                          <small>Reposiciones por coordinar</small>
+                        </div>
+                        <div>
+                          <span className="stat-icon">
+                            <ShoppingBasket size={19} />
+                          </span>
+                          <p>Propuestas con volumen</p>
+                          <strong>
+                            {validGroups.toString().padStart(2, "0")}
+                          </strong>
+                          <small>Revisa el costo total</small>
+                        </div>
+                        <div>
+                          <span className="stat-icon">
+                            <Check size={19} />
+                          </span>
+                          <button
+                            className="text-left"
+                            onClick={() => setView("participations")}
+                          >
+                            Mis participaciones →
+                          </button>
+                          <strong>{active.toString().padStart(2, "0")}</strong>
+                          <small>Confirmaciones vigentes</small>
+                        </div>
+                      </section>
+                    </>
+                  )}
                   <div className="section-heading">
                     <div>
                       <h2>Compras en coordinación</h2>
@@ -546,6 +615,36 @@ export function App({
                     </div>
                   )}
                 </>
+              )}
+              {view === "catalog" && isCoordinator && (
+                <section className="white-panel">
+                  <h2 className="text-lg font-semibold mb-5">
+                    {products.length} productos disponibles
+                  </h2>
+                  <div className="grid gap-4">
+                    {products.map((p) => (
+                      <article
+                        key={p.id}
+                        className="border-b border-[#e8ece7] pb-4"
+                      >
+                        <h3 className="font-semibold">{p.name}</h3>
+                        <p className="muted text-sm">
+                          {p.category} · {p.brand} · Saco de {p.kg} kg
+                        </p>
+                      </article>
+                    ))}
+                  </div>
+                </section>
+              )}
+              {view === "participations" && (
+                <ParticipationsPanel
+                  participations={query.data?.participations ?? []}
+                  groups={groups}
+                  products={products}
+                  stall={stall}
+                  onOpen={setDetail}
+                  onBrowse={() => setView("groups")}
+                />
               )}
               {view === "needs" && (
                 <section className="white-panel">
