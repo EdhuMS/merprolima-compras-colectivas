@@ -6,16 +6,16 @@ Avance 3 de Innovación y Transformación Digital, Grupo 8. Sumabasto ayuda a lo
 
 ## Mejoras del APF3
 
-- **Coordinación.** Solicitudes reúne el volumen pendiente por fecha y el pronóstico semanal por presentación. «Cómo se calculó» muestra el corte, la cobertura y la versión del modelo. «Preparar propuesta» abre la cotización para revisión.
+- **Coordinación.** Solicitudes reúne el volumen pendiente por fecha y el pronóstico semanal por presentación. «Cómo se calculó» muestra los sacos registrados al corte, la cobertura y la versión del árbol. «Preparar propuesta» abre la cotización para revisión.
 - **Tienda.** Las recomendaciones usan solicitudes compatibles y el pronóstico del puesto cuando existe historial suficiente. Una reposición sugerida se puede convertir en una necesidad después de revisar su cantidad.
 - **Modelo compartido.** Colab y el MVP usan el árbol exportado `sumabasto-apf3-calibrado-v2`. Abarca Cartavio, Costeño, Faraón Azul y Paramonga en presentaciones de 50 kg.
 - **Interfaz.** Se renovaron la página de inicio, el acceso común y la navegación de ambos roles. La barra lateral se puede contraer y conserva el icono de Sumabasto. Los reportes cuentan con una vista imprimible para guardar en PDF.
 
 ## Evaluación
 
-Las ocho fichas del APF2 orientan el volumen por compra y el intervalo de reposición. El reparto por marca, la anticipación y los retiros son supuestos de la simulación. En 4 736 filas de prueba simulada, el árbol obtuvo un MAE de **0,982 sacos** frente a **1,500 sacos** del promedio móvil. El WAPE fue **109,7 %**. La estimación orienta la revisión y la tienda confirma la cantidad.
+Las ocho fichas del APF2 orientan el volumen por compra y el intervalo de reposición. El reparto por marca, la anticipación y los retiros son supuestos de la simulación. En 4 736 filas de prueba simulada, el árbol obtuvo un MAE de **0,982 sacos** frente a **1,500 sacos** del promedio móvil. Usar los sacos registrados al corte obtuvo **0,555 sacos de MAE** y predecir cero, **0,895**. El árbol se conserva como estimación experimental. La coordinación dispone de los sacos al corte como referencia.
 
-La prueba automatizada compara las 32 predicciones de referencia del Colab con la inferencia del navegador. La verificación local también cubrió coordinación, apertura de cotización y recomendación de tienda. El dominio principal sirve la versión calibrada. Queda pendiente repetir el recorrido autenticado en producción.
+La prueba automatizada compara las 32 predicciones de referencia del Colab con la inferencia del navegador. La verificación local también cubrió coordinación, apertura de cotización y recomendación de tienda. El dominio principal sirve la versión calibrada. La verificación autenticada en producción confirmó la referencia al corte y la apertura de la cotización en coordinación. La cuenta de tienda abrió su panel y consultó el historial; en ese recorrido no apareció una sugerencia nueva.
 
 ## Ejecutar y verificar
 

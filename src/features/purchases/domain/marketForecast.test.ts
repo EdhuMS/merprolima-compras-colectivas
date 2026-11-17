@@ -18,3 +18,15 @@ it("reproduce las 32 predicciones de Colab, por presentación y puesto", () => {
   });
   expect(referenceInputs(products, 1).every(input => input.stallIndex === 1)).toBe(true);
 });
+
+it("conserva el cierre cero y el cierre sin observación sin inventar cobertura", () => {
+  const product = { id: "cartavio", brand: "Cartavio", name: "Azúcar rubia", kg: 50, category: "Azúcar" };
+  const [first, second] = referenceInputs([product]);
+  expect(marketForecasts([product], [])).toEqual([]);
+  const [forecast] = marketForecasts([product], [
+    { ...first, features: [0, 0, 0, 0], actual: 0 },
+    { ...second, actual: null },
+  ]);
+  expect(forecast.stores).toBe(2);
+  expect(forecast.estimates.map(({ input }) => input.actual)).toEqual([0, null]);
+});
