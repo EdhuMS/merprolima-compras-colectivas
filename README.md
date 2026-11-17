@@ -1,47 +1,36 @@
-# Merprolima compras colectivas
+# Sumabasto · APF3
 
-MVP académico APF2, Grupo 8. Entrega 14/10/2026.
+Avance 3 de Innovación y Transformación Digital, Grupo 8. Sumabasto ayuda a los puestos de Merprolima a registrar necesidades y coordinar compras colectivas.
 
-**Demo desplegada en Vercel:** [Abrir Merprolima compras colectivas](https://merprolima-compras-colectivas.vercel.app/).
+[Abrir Sumabasto en producción](https://merprolima-compras-colectivas.vercel.app/) · [Cuaderno de Google Colab](https://colab.research.google.com/drive/10W32CkSClLiJ_cTWK16Vo0BVO1P0j0o4)
 
-Vista pública con resultados agregados de ocho entrevistas reales y piloto autenticado conectado a Supabase. Registrar necesidades, agrupar cantidades compatibles, comparar costo total y confirmar participación no acredita una compra o entrevista realizada.
+## Mejoras del APF3
+
+- **Coordinación.** Solicitudes reúne el volumen pendiente por fecha y el pronóstico semanal por presentación. «Cómo se calculó» muestra el corte, la cobertura y la versión del modelo. «Preparar propuesta» abre la cotización para revisión.
+- **Tienda.** Las recomendaciones usan solicitudes compatibles y el pronóstico del puesto cuando existe historial suficiente. Una reposición sugerida se puede convertir en una necesidad después de revisar su cantidad.
+- **Modelo compartido.** Colab y el MVP usan el árbol exportado `sumabasto-apf3-calibrado-v2`. Abarca Cartavio, Costeño, Faraón Azul y Paramonga en presentaciones de 50 kg.
+- **Interfaz.** Se renovaron la página de inicio, el acceso común y la navegación de ambos roles. La barra lateral se puede contraer y conserva el icono de Sumabasto. Los reportes cuentan con una vista imprimible para guardar en PDF.
+
+## Evaluación
+
+Las ocho fichas del APF2 orientan el volumen por compra y el intervalo de reposición. El reparto por marca, la anticipación y los retiros son supuestos de la simulación. En 4 736 filas de prueba simulada, el árbol obtuvo un MAE de **0,982 sacos** frente a **1,500 sacos** del promedio móvil. El WAPE fue **109,7 %**. La estimación orienta la revisión y la tienda confirma la cantidad.
+
+La prueba automatizada compara las 32 predicciones de referencia del Colab con la inferencia del navegador. La verificación local también cubrió coordinación, apertura de cotización y recomendación de tienda. El dominio principal sirve la versión calibrada. Queda pendiente repetir el recorrido autenticado en producción.
 
 ## Ejecutar y verificar
 
-npm install
+```sh
+npm ci
 npm run dev
 npm test
 npm run build
+```
 
-## Arquitectura
-
-React, TypeScript, Vite, Tailwind, componentes shadcn/Radix, React Hook Form, Zod y TanStack Query. Separación de dominio, contratos/casos de aplicación, repositorios e interfaz por funcionalidad. Cliente Supabase compartido en infraestructura. FastAPI/ML reservado para APF3.
-
-## Supabase
-
-Proyecto ctvfzxhodqdeiqiyokfa. El modo piloto exige una cuenta de Supabase Auth y una membresía activa con puesto y rol. El catálogo y cotizaciones los administra el coordinador. No se otorgan roles desde el navegador. Los fixtures de la demo se retiraron. field_interviews conserva ocho declaraciones reales con acceso restringido al coordinador.
-
-Variables publicables: VITE_SUPABASE_URL y VITE_SUPABASE_PUBLISHABLE_KEY, configuradas en Vercel. Nunca utilizar service_role o contraseña de base de datos en el cliente.
+La aplicación usa React, TypeScript, Vite, Tailwind y Supabase. La autenticación exige una membresía activa con puesto y rol. Configura las variables publicables de `.env.example` para conectar el entorno autorizado. En el cliente se utiliza la clave publicable de Supabase.
 
 ## Documentación
 
-- docs/definicion-apf2.md y docs/contrato-datos.md: definición y contrato implementado actualizado.
-- docs/actualizacion-evidencia-real.md: estado vigente y alcance de las declaraciones. Los documentos de simulación se conservan únicamente como historial.
-- docs/arquitectura-piloto.md: capas, permisos y habilitación de cuentas.
-- docs/validacion-supabase-vercel.md: verificación de base de datos e interfaz.
-
-## Estado operativo
-
-Las migraciones están aplicadas y los permisos probados con actores ficticios dentro de una transacción revertida. Existe una cuenta coordinadora activa. Hay ocho declaraciones de campo reales en un módulo separado; aún no hay necesidades operativas precisadas, cotizaciones ni participaciones reales. Crear las cuentas piloto en Supabase Auth y asignar membresía antes de registrar datos de campo. Sesión real coordinadora, alta de catálogo y persistencia verificadas desde navegador. Pruebas de flujo como testers en entorno separado; no pruebas con comerciantes.
-
-## Vercel
-
-Proyecto merprolima-compras-colectivas de edhumss-projects vinculado mediante CLI. Publicación en producción con vercel deploy --prod. La versión actual sustituye la demostración ficticia.
-
-## Cierre del 13/10/2026
-
-20 pruebas pasaron. Cotizaciones con tipo de evidencia y gastos null, fecha estimada del proveedor y exportación por periodo/analítica disponibles. Historial de necesidades desde la nueva migración. Ver docs/estado-mvp.md, docs/tablero-kanban.md, docs/validacion-cierre-apf2.md y docs/privacidad-piloto.md.
-
-## Evaluación del flujo
-
-Pruebas de testers abre un entorno local claramente rotulado. Cantidades, mínimo y fechas son casos técnicos; usa precios publicados con fuente. No registra esos casos en Supabase ni los convierte en datos de campo. Ver docs/fuentes-mayoristas.md y docs/pruebas-testers-apf2.md.
+- [Pronóstico, integración y verificación del APF3](docs/apf3-pronostico-coordinacion.md)
+- [Contrato de datos](docs/contrato-datos.md)
+- [Arquitectura del piloto en APF2](docs/arquitectura-piloto.md)
+- [Estado histórico del MVP en APF2](docs/estado-mvp.md)

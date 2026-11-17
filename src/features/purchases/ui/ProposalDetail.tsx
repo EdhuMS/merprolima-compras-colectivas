@@ -8,6 +8,7 @@ import { money, dateLabel } from "../../../lib/utils";
 
 export function ProposalDetail({
   group,
+  suggestedQuantity,
   stall,
   coordinator,
   repository,
@@ -18,6 +19,7 @@ export function ProposalDetail({
   onEditQuote,
 }: {
   group: Group;
+  suggestedQuantity: number;
   stall: string;
   coordinator: boolean;
   repository: PurchaseRepository;
@@ -27,7 +29,7 @@ export function ProposalDetail({
   onSuccess: (message: string) => void;
   onEditQuote: () => void;
 }) {
-  const [qty, setQty] = useState(1);
+  const [qty, setQty] = useState(suggestedQuantity);
   const [decision, setDecision] = useState<"confirmed" | "declined">();
   const ownQty = group.needs
     .filter((n) => n.stall === stall)

@@ -14,6 +14,7 @@ export function ParticipationsPanel({
   groups,
   products,
   stall,
+  today,
   onOpen,
   onBrowse,
 }: {
@@ -21,28 +22,28 @@ export function ParticipationsPanel({
   groups: Group[];
   products: Product[];
   stall: string;
+  today: string;
   onOpen: (key: string) => void;
   onBrowse: () => void;
 }) {
   const [filter, setFilter] = useState<
-    "all" | "confirmed" | "review" | "declined"
-  >("all");
+    "active" | "history"
+  >("active");
   const entries = participations
-    .filter((p) => p.stall === stall)
+    .filter((p) => p.stall === stall && p.status !== "declined")
     .map((p) => {
       const group = groups.find((g) => g.key === p.groupKey);
       const [, productId, date, mode] = p.groupKey.split("|");
       const expired =
         !!group?.quote && new Date(group.quote.validUntil) < new Date();
+      const historical = date < today || expired || !group;
       const state =
-        p.status === "declined"
-          ? "declined"
-          : p.status === "pending" ||
-              !group ||
-              expired ||
-              signature(group) !== p.signature
-            ? "review"
-            : "confirmed";
+        p.status === "pending" ||
+        !group ||
+        expired ||
+        signature(group) !== p.signature
+          ? "review"
+          : "confirmed";
       return {
         p,
         group,
@@ -50,22 +51,23 @@ export function ParticipationsPanel({
         date,
         mode,
         state,
-        label:
-          p.status === "declined"
-            ? "Sin participación"
-            : !group
-              ? "Compra sin necesidades activas"
-              : expired
-                ? "Propuesta vencida"
-                : p.status === "pending"
-                  ? "Pedido pendiente de confirmación"
-                  : state === "review"
-                    ? "Requiere nueva confirmación"
-                    : "Participación confirmada",
+        historical,
+        label: historical && p.status === "confirmed"
+          ? "Confirmada en su fecha"
+          : historical && date < today ? "Fecha pasada sin confirmación"
+          : !group
+          ? "Compra sin necesidades activas"
+          : expired
+            ? "Propuesta vencida"
+            : p.status === "pending"
+              ? "Pedido pendiente de confirmación"
+              : state === "review"
+                ? "Requiere nueva confirmación"
+                : "Participación confirmada",
       };
     })
     .sort((a, b) => b.p.createdAt.localeCompare(a.p.createdAt));
-  const visible = entries.filter((e) => filter === "all" || e.state === filter);
+  const visible = entries.filter((e) => filter === "history" ? e.historical : !e.historical);
   return (
     <section className="white-panel">
       <div className="section-heading">
@@ -83,10 +85,8 @@ export function ParticipationsPanel({
       >
         {(
           [
-            { id: "all", label: "Todas" },
-            { id: "confirmed", label: "Confirmadas" },
-            { id: "review", label: "Por revisar" },
-            { id: "declined", label: "Sin participación" },
+            { id: "active", label: "Vigentes" },
+            { id: "history", label: "Historial" },
           ] as const
         ).map((f) => (
           <Button
@@ -97,12 +97,12 @@ export function ParticipationsPanel({
             onClick={() => setFilter(f.id)}
           >
             {f.label} (
-            {entries.filter((e) => f.id === "all" || e.state === f.id).length})
+            {entries.filter((e) => f.id === "history" ? e.historical : !e.historical).length})
           </Button>
         ))}
       </div>
       <div className="grid gap-4">
-        {visible.map(({ p, group, product, date, mode, state, label }) => (
+        {visible.map(({ p, group, product, date, mode, state, historical, label }) => (
           <article
             key={p.id}
             className="rounded-2xl border border-[#e3e9e2] p-5"
@@ -127,19 +127,19 @@ export function ParticipationsPanel({
             {group && (
               <div className="flex flex-wrap items-center justify-between gap-3 mt-5">
                 <p className="text-sm muted">
-                  Tu pedido:{" "}
+                  Tu participación:{" "}
                   {group.needs
                     .filter((n) => n.stall === stall)
                     .reduce((sum, n) => sum + n.qty, 0)}{" "}
                   sacos · Volumen reunido: {group.total} sacos
                 </p>
-                <Button
+                {!historical && <Button
                   size="sm"
                   variant="outline"
                   onClick={() => onOpen(group.key)}
                 >
                   Ver participación
-                </Button>
+                </Button>}
               </div>
             )}
           </article>

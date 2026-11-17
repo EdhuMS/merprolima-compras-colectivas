@@ -31,6 +31,21 @@ export class SupabasePurchaseRepository implements PurchaseRepository {
     )
       throw new Error("La respuesta del piloto no es válida");
     this.snapshot = data as Store;
+    const coordinator = this.snapshot.identity?.role === "coordinator";
+    const { data: inputs, error: forecastError } = await requireSupabase().rpc(
+      coordinator ? "coordinator_forecast_history" : "purchase_forecast_inputs",
+    );
+    this.snapshot.forecastUnavailable = !!forecastError;
+    this.snapshot.forecastInputs = Array.isArray(inputs) ? inputs : [];
+    if (this.snapshot.identity?.role === "coordinator") {
+      const { data: demand, error } = await requireSupabase().rpc(
+        "coordinator_outstanding_demand",
+      );
+      if (error) throw new Error(error.message);
+      if (!Array.isArray(demand))
+        throw new Error("La bandeja de demanda del coordinador no es válida");
+      this.snapshot.coordinatorDemand = demand as Store["needs"];
+    }
     return this.snapshot;
   }
   async saveNeed(input: NeedInput, _stall: string, id?: string) {

@@ -37,6 +37,7 @@ type Props = {
   selected?: Group;
   quoteOpen: boolean;
   setQuoteOpen: (v: boolean) => void;
+  suggestedQuantity: number;
   setDetail: (v: string | undefined) => void;
   cmp: ReturnType<typeof comparison> | undefined;
   dateLabel: (d: string) => string;
@@ -65,6 +66,7 @@ export function PurchaseDialogs({
   quoteOpen,
   setQuoteOpen,
   setDetail,
+  suggestedQuantity,
   cmp,
   dateLabel,
   status,
@@ -178,6 +180,7 @@ export function PurchaseDialogs({
         <ProposalDetail
           key={selected.key}
           group={selected}
+          suggestedQuantity={suggestedQuantity}
           stall={stall}
           coordinator={role === "coordinator"}
           repository={repository}

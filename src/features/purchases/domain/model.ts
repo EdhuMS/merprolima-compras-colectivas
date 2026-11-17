@@ -1,3 +1,4 @@
+import type { ForecastInput } from "./marketForecast";
 import { z } from "zod";
 export type Origin = "simulated" | "real";
 export type Product = {
@@ -60,6 +61,9 @@ export type Store = {
   identity?: { stall: string; role: "buyer" | "coordinator"; origin: Origin };
   groupVersions?: Record<string, string>;
   groupFreight?: Record<string, number>;
+  coordinatorDemand?: Need[];
+  forecastInputs?: ForecastInput[];
+  forecastUnavailable?: boolean;
   needs: Need[];
   quotes: Quote[];
   participations: Participation[];
@@ -170,6 +174,57 @@ export function groupNeeds(store: Store, products: Product[]): Group[] {
         q.origin === g.origin,
     ),
   }));
+}
+export function limaToday(now = new Date()): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Lima",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+/** Coordinator inbox: only unexpired need not yet covered by an active participation. */
+export function outstandingDemandGroups(
+  store: Store,
+  products: Product[],
+  today = limaToday(),
+): Group[] {
+  return groupNeeds(store, products)
+    .filter((group) => group.date >= today)
+    .map((group) => {
+      // Supabase already returns an anonymized residual aggregate for coordinators.
+      if (group.needs.every((need) => need.stall === "Otros puestos"))
+        return group;
+      const residualNeeds: Need[] = [];
+      const byStall = new Map<string, Need[]>();
+      for (const need of group.needs) {
+        const list = byStall.get(need.stall) ?? [];
+        list.push(need);
+        byStall.set(need.stall, list);
+      }
+      for (const [stall, needs] of byStall) {
+        const requested = needs.reduce((sum, need) => sum + need.qty, 0);
+        const participation = store.participations.find(
+          (item) =>
+            item.stall === stall &&
+            item.groupKey === group.key &&
+            (item.status === "confirmed" || item.status === "pending"),
+        );
+        const covered = participation ? requested : 0;
+        const remaining = Math.max(0, requested - covered);
+        if (remaining > 0)
+          residualNeeds.push({ ...needs[0], qty: remaining });
+      }
+      return {
+        ...group,
+        needs: residualNeeds,
+        total: residualNeeds.reduce((sum, need) => sum + need.qty, 0),
+      };
+    })
+    .filter((group) => group.total > 0);
 }
 export function signature(group: Group) {
   if (group.version) return group.version;

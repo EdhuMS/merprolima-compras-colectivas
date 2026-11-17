@@ -10,7 +10,7 @@ const schema = z.object({
   email: z.email("Ingresa un correo válido"),
   password: z.string().min(8, "Usa al menos ocho caracteres"),
 });
-export function Login({ onDemo }: { onDemo: () => void }) {
+export function Login({ onBack }: { onBack: () => void }) {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -25,14 +25,14 @@ export function Login({ onDemo }: { onDemo: () => void }) {
           className="landing-brand"
           onClick={(event) => {
             event.preventDefault();
-            onDemo();
+            onBack();
           }}
         >
           <BrandLogo />
         </a>
-        <h1 className="text-3xl font-semibold mt-8">Ingresa a tu puesto</h1>
+        <h1 className="text-3xl font-semibold mt-8">Inicia sesión</h1>
         <p className="muted text-sm mt-3 leading-6">
-          Coordina tu reposición y consulta las propuestas del mercado.
+          Usa el correo y la contraseña de tu cuenta.
         </p>
         <form
           className="form mt-6"
@@ -101,7 +101,7 @@ export function Login({ onDemo }: { onDemo: () => void }) {
           <Button type="submit" disabled={busy}>
             {busy ? "Ingresando…" : "Iniciar sesión"}
           </Button>
-          <Button type="button" variant="ghost" onClick={onDemo}>
+          <Button type="button" variant="ghost" onClick={onBack}>
             <ArrowLeft size={17} />
             Volver al inicio
           </Button>

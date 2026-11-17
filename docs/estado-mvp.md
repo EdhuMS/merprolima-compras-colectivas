@@ -1,4 +1,6 @@
-# Estado del MVP al 13/10/2026
+# Estado histórico del MVP · APF2 (13/10/2026)
+
+Para el estado actual, consulta el [APF3 de Sumabasto](apf3-pronostico-coordinacion.md).
 
 Demo: https://merprolima-compras-colectivas.vercel.app/. Repositorio privado: https://github.com/EdhuMS/merprolima-compras-colectivas.
 

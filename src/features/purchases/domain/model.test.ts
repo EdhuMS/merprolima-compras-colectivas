@@ -5,6 +5,7 @@ import {
   signature,
   needSchema,
   joiningPreview,
+  outstandingDemandGroups,
 } from "./model";
 import { demoSeed, products } from "./test-fixtures";
 import { LocalDemoRepository } from "../data/repository";
@@ -29,6 +30,46 @@ describe("Reglas de compras colectivas", () => {
     s.needs[1].origin = "real";
     s.needs[2].mode = "pickup";
     expect(groupNeeds(s, products)).toHaveLength(5);
+  });
+  it("retira de la bandeja la necesidad cubierta y la restaura si se retira la participación", () => {
+    const store = demoSeed();
+    const group = groupNeeds(store, products)[0];
+    store.participations.push({
+      id: "p-covered",
+      stall: "DEMO-02",
+      groupKey: group.key,
+      signature: "current",
+      status: "pending",
+      createdAt: new Date().toISOString(),
+      origin: "simulated",
+    });
+
+    expect(
+      outstandingDemandGroups(store, products, "2026-10-16").find(
+        (item) => item.key === group.key,
+      ),
+    ).toMatchObject({ total: 7 });
+    expect(
+      outstandingDemandGroups(store, products, "2026-10-16")[0].needs.some(
+        (need) => need.stall === "DEMO-02",
+      ),
+    ).toBe(false);
+
+    store.participations[0].status = "declined";
+    expect(
+      outstandingDemandGroups(store, products, "2026-10-16").find(
+        (item) => item.key === group.key,
+      ),
+    ).toMatchObject({ total: 12 });
+  });
+  it("no cuenta necesidades vencidas en la bandeja y sí conserva las de hoy en Lima", () => {
+    const store = demoSeed();
+    store.needs[0].date = "2026-10-15";
+    store.needs[1].date = "2026-10-16";
+    const demand = outstandingDemandGroups(store, products, "2026-10-16");
+
+    expect(demand.some((group) => group.date === "2026-10-15")).toBe(false);
+    expect(demand.some((group) => group.date === "2026-10-16")).toBe(true);
   });
   it("incluye reparto y transporte en el costo de tres sacos", () => {
     const g = groupNeeds(demoSeed(), products)[0];

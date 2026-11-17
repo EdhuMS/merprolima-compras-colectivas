@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { X } from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 export function useWorkspaceSidebar() {
   const [isMobile, setIsMobile] = useState(
     () => window.matchMedia("(max-width: 1023px)").matches,
@@ -59,11 +59,16 @@ export function WorkspaceSidebar({
     </>
   );
   if (!navigation.isMobile)
-    return navigation.desktopVisible ? (
-      <aside id="workspace-navigation" className="sidebar">
-        {contents}
+    return (
+      <aside id="workspace-navigation" className="sidebar desktop-sidebar">
+        <button className="rail-toggle" type="button"
+          aria-label={navigation.desktopVisible ? "Contraer navegación" : "Expandir navegación"}
+          aria-expanded={navigation.desktopVisible} onClick={navigation.toggle}>
+          {navigation.desktopVisible ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
+        </button>
+        {children}
       </aside>
-    ) : null;
+    );
   return (
     <Dialog.Root
       open={navigation.mobileOpen}

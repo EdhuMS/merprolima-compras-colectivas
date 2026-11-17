@@ -8,32 +8,28 @@ export function EvidencePanel({
   isDemo,
   exportData,
   onReset,
-  canExportAnalytical,
+  isCoordinator,
 }: {
   isDemo: boolean;
-  exportData: (period: ExportPeriod, analytical?: boolean) => Promise<void>;
+  exportData: (period: ExportPeriod) => void;
   onReset: () => void;
-  canExportAnalytical: boolean;
-  origin: "real" | "simulated";
+  isCoordinator: boolean;
 }) {
-  const [period, setPeriod] = useState<ExportPeriod>({
-    from: "2026-10-01",
-    to: "2026-10-31",
-  });
-  const [busy, setBusy] = useState(false);
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Lima" });
+  const [year, month] = today.split("-").map(Number);
+  const monthEnd = new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
+  const [period, setPeriod] = useState<ExportPeriod>({ from: today.slice(0, 7) + "-01", to: monthEnd });
   const [error, setError] = useState("");
-  const run = async (analytical = false) => {
+  const run = () => {
     try {
       setError("");
       validatePeriod(period);
-      setBusy(true);
-      await exportData(period, analytical);
+      exportData(period);
     } catch (e) {
       setError(
         e instanceof Error ? e.message : "No se pudo descargar el reporte",
       );
-    } finally {
-      setBusy(false);
+
     }
   };
   return (
@@ -44,7 +40,9 @@ export function EvidencePanel({
         </span>
         <h2 className="mt-4 text-xl font-semibold">Resumen por periodo</h2>
         <p className="muted mt-2">
-          Selecciona las fechas de reposición que deseas consultar.
+          {isCoordinator
+            ? "Consulta los sacos solicitados y el estado de las propuestas para planificar el abastecimiento."
+            : "Consulta tus solicitudes y el estado de tu participación para llevar un registro de tus reposiciones."}
         </p>
         <div className="form mt-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -72,15 +70,7 @@ export function EvidencePanel({
           )}
         </div>
         <div className="report-actions">
-          <Button disabled={busy} onClick={() => run()}>
-            <FileDown size={17} />
-            {busy ? "Preparando…" : "Descargar mis registros"}
-          </Button>
-          {canExportAnalytical && (
-            <Button variant="outline" disabled={busy} onClick={() => run(true)}>
-              Resumen del mercado
-            </Button>
-          )}
+          <Button onClick={run}><FileDown size={17} /> Abrir reporte para PDF</Button>
         </div>
         {isDemo && (
           <details className="mt-6 text-sm muted">
@@ -92,7 +82,7 @@ export function EvidencePanel({
         )}
       </section>
       <MarketReferences />
-      {canExportAnalytical && <FieldRecords />}
+      {isCoordinator && <FieldRecords />}
     </div>
   );
 }

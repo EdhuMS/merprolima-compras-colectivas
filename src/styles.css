@@ -1314,3 +1314,86 @@ body,
 .login-panel .landing-brand { display:flex; width:100%; justify-content:center; }
 .login-panel .sumabasto-logo { margin-inline:auto; }
 .sumabasto-logo { object-position:center; }
+
+/* Shared navigation and sign-in entry */
+.desktop-sidebar {
+  padding: 25px 16px;
+  transition: width .2s ease, padding .2s ease;
+}
+.workspace-links { margin-top: 24px; }
+.nav-item svg { flex-shrink: 0; }
+.sidebar-mark { display: none; }
+.sidebar-collapsed .desktop-sidebar { width: 68px; padding-inline: 10px; }
+.sidebar-collapsed .main-shell { margin-left: 68px; width: calc(100% - 68px); }
+.sidebar-collapsed .sidebar-wordmark,
+.sidebar-collapsed .market-label,
+.sidebar-collapsed .nav-label,
+.sidebar-collapsed .nav-chevron { display: none; }
+.sidebar-collapsed .sidebar-mark { display: block; object-fit: contain; }
+.sidebar-collapsed .brand { justify-content: center; }
+.sidebar-collapsed .nav-item { justify-content: center; min-height: 44px; padding-inline: 0; }
+.nav-item:focus-visible, .sidebar-toggle:focus-visible, .sidebar .brand:focus-visible {
+  outline: 2px solid #83a553;
+  outline-offset: 2px;
+}
+.landing .landing-hero { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); }
+.landing .landing-hero h1 { margin-top: 0; text-wrap: balance; }
+.landing .landing-header { min-height: 84px; }
+.landing .landing-illustration { background: #fff; border-radius: 18px; padding: clamp(20px, 4vw, 36px); }
+.landing-illustration h2 { font-size: 20px; font-weight: 650; margin-bottom: 20px; }
+.landing-flow { display: grid; gap: 14px; }
+.landing-flow li { display: flex; align-items: center; gap: 12px; line-height: 1.45; }
+.landing-flow svg { flex: 0 0 auto; width: 36px; height: 36px; padding: 8px; color: #294b3a; background: #eef3e9; border-radius: 9px; }
+@media (max-width: 720px) {
+  .landing .landing-hero { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .landing .landing-header { min-height: 70px; }
+  .landing-header > span { text-align: right; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .desktop-sidebar, .main-shell { transition: none; }
+}
+
+.rail-toggle {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 12px;
+  color: #dce7dd;
+  border-radius: 10px;
+}
+.rail-toggle:hover, .rail-toggle:focus-visible { background: #234c3e; }
+.sidebar-collapsed .rail-toggle { align-self: center; }
+.sidebar-collapsed .workspace-links { gap: 6px; margin-top: 18px; }
+@media (min-width: 1024px) { .mobile-sidebar-toggle { display: none; } }
+
+/* APF3 workspace */
+.forecast-workspace { margin-bottom: 24px; }
+.forecast-workspace h2 { font-size: 1.25rem; font-weight: 650; }
+.forecast-header, .forecast-alert { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; }
+.forecast-header label { display: grid; gap: 6px; font-size: .875rem; }
+.forecast-header select { max-width: 100%; background: white; border: 1px solid #cfdcd2; border-radius: 8px; padding: 9px; }
+.forecast-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 235px), 1fr)); gap: 14px; margin-top: 18px; }
+.forecast-card { background: #f7faf6; border: 1px solid #dce7dc; border-radius: 14px; padding: 17px; display: grid; align-content: start; justify-items: start; gap: 9px; }
+.forecast-card h3 { font-size: 1rem; font-weight: 650; }
+.forecast-ready { color: #21543c; background: #e1efe4; border-radius: 6px; padding: 4px 8px; font-size: .8rem; }
+.forecast-card details { font-size: .875rem; }
+.forecast-card summary { cursor: pointer; }
+.forecast-card details ul { margin-top: 8px; }
+.forecast-alert { background: #edf5ed; padding: 14px; border-radius: 10px; margin-top: 12px; }
+.desktop-sidebar .nav-item { min-height: 44px; }
+.desktop-sidebar .nav-label { line-height: 1.35; }
+
+@layer components {
+  .market-workspace { @apply bg-[#f6f7f3]; }
+  .market-workspace .page { @apply mx-auto max-w-[1120px]; }
+  .market-workspace .topbar { @apply h-16 min-h-16 border-[#dce7dc] px-4 sm:px-8; }
+  .market-workspace .page-heading { @apply mb-7 border-b border-[#dce7dc] pb-5; }
+  .market-workspace .page-heading h1 { @apply text-3xl font-semibold tracking-tight sm:text-4xl; }
+}
+.market-workspace .sidebar { background: #fcfdf9; color: #153a2c; border-right: 1px solid #dce7dc; }
+.market-workspace .sidebar .brand { background: transparent; border-radius: 12px; padding: 9px; }
+.market-workspace.sidebar-collapsed .sidebar .brand { padding: 4px; }
+.market-workspace .nav-item, .market-workspace .rail-toggle, .market-workspace .sidebar-close { color: #355444; }
+.market-workspace .nav-item:hover, .market-workspace .rail-toggle:hover { background: #eaf2e9; }
+.market-workspace .nav-active { background: #dbeade !important; color: #153a2c; }

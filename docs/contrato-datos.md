@@ -36,6 +36,8 @@ El historial empieza al aplicar la migración del 13/10 y registra cambios mater
 
 ## APF3
 
+La implementación vigente se describe en el [contrato de pronóstico del APF3](apf3-pronostico-coordinacion.md#contrato). La propuesta original del APF2 se conserva a continuación como antecedente.
+
 Objetivo candidato: sacos solicitados de una presentación durante la semana siguiente. Son necesidades declaradas, no ventas. Excluir simulados y retiros, deduplicar UUID y distinguir cero de faltante. Revisar cobertura y reconstruir información disponible al corte usando revisiones, sin eventos futuros.
 
 Partición temporal, baseline de última semana o promedio disponible, MAE y WAPE con denominador positivo. La historia real suficiente está pendiente. Tres entrevistas no crean una serie semanal suficiente para ML.

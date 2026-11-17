@@ -1,0 +1,235 @@
+{
+  "schema_version": 2,
+  "scope": "market_analytical",
+  "data_origin": "simulated",
+  "basis": "needed_date",
+  "period": {
+    "from": "2023-10-16",
+    "to": "2023-11-12"
+  },
+  "weekly_needs": [
+    {
+      "product_id": "test-faraon-50",
+      "mode": "delivery",
+      "origin": "simulated",
+      "week_start": "2023-10-16",
+      "product_name": "Arroz extra añejo",
+      "brand": "Faraón Azul",
+      "kg": 50,
+      "requested_package_qty": 16,
+      "active_stall_count": 3
+    },
+    {
+      "product_id": "test-faraon-50",
+      "mode": "delivery",
+      "origin": "simulated",
+      "week_start": "2023-10-23",
+      "product_name": "Arroz extra añejo",
+      "brand": "Faraón Azul",
+      "kg": 50,
+      "requested_package_qty": 20,
+      "active_stall_count": 4
+    },
+    {
+      "product_id": "test-faraon-50",
+      "mode": "delivery",
+      "origin": "simulated",
+      "week_start": "2023-10-30",
+      "product_name": "Arroz extra añejo",
+      "brand": "Faraón Azul",
+      "kg": 50,
+      "requested_package_qty": 27,
+      "active_stall_count": 5
+    }
+  ],
+  "need_revisions": [
+    {
+      "product_id": "test-faraon-50",
+      "mode": "delivery",
+      "origin": "simulated",
+      "revision_id": 1,
+      "need_id": "2023-10-16-0",
+      "needed_date": "2023-10-16",
+      "qty": 6,
+      "status": "open",
+      "occurred_at": "2023-10-16T12:00:00Z"
+    },
+    {
+      "product_id": "test-faraon-50",
+      "mode": "delivery",
+      "origin": "simulated",
+      "revision_id": 2,
+      "need_id": "2023-10-16-1",
+      "needed_date": "2023-10-16",
+      "qty": 5,
+      "status": "open",
+      "occurred_at": "2023-10-16T12:00:00Z"
+    },
+    {
+      "product_id": "test-faraon-50",
+      "mode": "delivery",
+      "origin": "simulated",
+      "revision_id": 3,
+      "need_id": "2023-10-16-2",
+      "needed_date": "2023-10-16",
+      "qty": 5,
+      "status": "open",
+      "occurred_at": "2023-10-16T12:00:00Z"
+    },
+    {
+      "product_id": "test-faraon-50",
+      "mode": "delivery",
+      "origin": "simulated",
+      "revision_id": 4,
+      "need_id": "2023-10-23-0",
+      "needed_date": "2023-10-23",
+      "qty": 5,
+      "status": "open",
+      "occurred_at": "2023-10-23T12:00:00Z"
+    },
+    {
+      "product_id": "test-faraon-50",
+      "mode": "delivery",
+      "origin": "simulated",
+      "revision_id": 5,
+      "need_id": "2023-10-23-1",
+      "needed_date": "2023-10-23",
+      "qty": 5,
+      "status": "open",
+      "occurred_at": "2023-10-23T12:00:00Z"
+    },
+    {
+      "product_id": "test-faraon-50",
+      "mode": "delivery",
+      "origin": "simulated",
+      "revision_id": 6,
+      "need_id": "2023-10-23-2",
+      "needed_date": "2023-10-23",
+      "qty": 5,
+      "status": "open",
+      "occurred_at": "2023-10-23T12:00:00Z"
+    },
+    {
+      "product_id": "test-faraon-50",
+      "mode": "delivery",
+      "origin": "simulated",
+      "revision_id": 7,
+      "need_id": "2023-10-23-3",
+      "needed_date": "2023-10-23",
+      "qty": 5,
+      "status": "open",
+      "occurred_at": "2023-10-23T12:00:00Z"
+    },
+    {
+      "product_id": "test-faraon-50",
+      "mode": "delivery",
+      "origin": "simulated",
+      "revision_id": 8,
+      "need_id": "2023-10-30-0",
+      "needed_date": "2023-10-30",
+      "qty": 6,
+      "status": "open",
+      "occurred_at": "2023-10-30T12:00:00Z"
+    },
+    {
+      "product_id": "test-faraon-50",
+      "mode": "delivery",
+      "origin": "simulated",
+      "revision_id": 9,
+      "need_id": "2023-10-30-1",
+      "needed_date": "2023-10-30",
+      "qty": 6,
+      "status": "open",
+      "occurred_at": "2023-10-30T12:00:00Z"
+    },
+    {
+      "product_id": "test-faraon-50",
+      "mode": "delivery",
+      "origin": "simulated",
+      "revision_id": 10,
+      "need_id": "2023-10-30-2",
+      "needed_date": "2023-10-30",
+      "qty": 5,
+      "status": "open",
+      "occurred_at": "2023-10-30T12:00:00Z"
+    },
+    {
+      "product_id": "test-faraon-50",
+      "mode": "delivery",
+      "origin": "simulated",
+      "revision_id": 11,
+      "need_id": "2023-10-30-3",
+      "needed_date": "2023-10-30",
+      "qty": 5,
+      "status": "open",
+      "occurred_at": "2023-10-30T12:00:00Z"
+    },
+    {
+      "product_id": "test-faraon-50",
+      "mode": "delivery",
+      "origin": "simulated",
+      "revision_id": 12,
+      "need_id": "2023-10-30-4",
+      "needed_date": "2023-10-30",
+      "qty": 5,
+      "status": "open",
+      "occurred_at": "2023-10-30T12:00:00Z"
+    },
+    {
+      "product_id": "test-faraon-50",
+      "mode": "delivery",
+      "origin": "simulated",
+      "revision_id": 13,
+      "need_id": "objetivo-0",
+      "needed_date": "2023-11-08",
+      "qty": 4,
+      "status": "open",
+      "occurred_at": "2023-11-06T04:59:59Z"
+    },
+    {
+      "product_id": "test-faraon-50",
+      "mode": "delivery",
+      "origin": "simulated",
+      "revision_id": 14,
+      "need_id": "objetivo-1",
+      "needed_date": "2023-11-08",
+      "qty": 4,
+      "status": "open",
+      "occurred_at": "2023-11-06T04:59:59Z"
+    },
+    {
+      "product_id": "test-faraon-50",
+      "mode": "delivery",
+      "origin": "simulated",
+      "revision_id": 15,
+      "need_id": "objetivo-2",
+      "needed_date": "2023-11-08",
+      "qty": 4,
+      "status": "open",
+      "occurred_at": "2023-11-06T04:59:59Z"
+    },
+    {
+      "product_id": "test-faraon-50",
+      "mode": "delivery",
+      "origin": "simulated",
+      "revision_id": 16,
+      "need_id": "objetivo-3",
+      "needed_date": "2023-11-08",
+      "qty": 4,
+      "status": "open",
+      "occurred_at": "2023-11-06T04:59:59Z"
+    },
+    {
+      "product_id": "test-faraon-50",
+      "mode": "delivery",
+      "origin": "simulated",
+      "revision_id": 17,
+      "need_id": "objetivo-3",
+      "needed_date": "2023-11-08",
+      "qty": 4,
+      "status": "withdrawn",
+      "occurred_at": "2023-11-06T05:00:00Z"
+    }
+  ],
+  "quotes": []
+}

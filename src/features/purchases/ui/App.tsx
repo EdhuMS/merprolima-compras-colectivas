@@ -1,3 +1,6 @@
+import { predictProduct } from "../domain/marketForecast";
+import { Recommendations } from "./Recommendations";
+import { recommendPurchases } from "../domain/recommendations";
 import { Modal } from "../../../components/ui/dialog";
 import { ProposalComposer } from "./ProposalComposer";
 import { BrandLogo } from "../../../shared/ui/BrandLogo";
@@ -8,8 +11,8 @@ import {
 import { useEffect, useState, type ReactNode } from "react";
 import { usePurchases } from "../application/usePurchases";
 import type { PurchaseRepository } from "../application/ports";
-import { createSnapshotExport, type ExportPeriod } from "../domain/export";
-import { downloadJson } from "../../../lib/download";
+import { type ExportPeriod } from "../domain/export";
+import { printReport } from "../../../lib/printReport";
 import { EvidencePanel } from "./EvidencePanel";
 import { GroupCard } from "./GroupCard";
 import { ParticipationsPanel } from "./ParticipationsPanel";
@@ -46,6 +49,7 @@ import { money, cn } from "../../../lib/utils";
 import { products as demoProducts, stalls } from "../data/seed";
 import {
   groupNeeds,
+  outstandingDemandGroups,
   comparison,
   signature,
   needSchema,
@@ -82,8 +86,8 @@ export function App({
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [view]);
-  const [demoStall, setStall] = useState(stalls[0]);
-  const [demoRole, setRole] = useState("buyer");
+  const [demoStall] = useState(stalls[0]);
+  const [demoRole] = useState("buyer");
   const navigation = useWorkspaceSidebar();
   const [formOpen, setFormOpen] = useState(false);
   const [needRequestId, setNeedRequestId] = useState<string>();
@@ -124,24 +128,39 @@ export function App({
     query.data?.needs.filter((n) => n.stall === stall && n.status === "open") ??
     [];
   const published = groups.filter((g) => !!g.quote);
-  const demand = groups.filter((g) => g.total > 0);
+  const todayInLima = new Date().toLocaleDateString("en-CA", { timeZone: "America/Lima" });
+  const openProposals = published.filter((g) =>
+    g.date >= todayInLima && Date.parse(g.quote!.validUntil) > Date.now(),
+  );
+  const inputs = query.data?.forecastInputs;
+  const currentWeek = new Date(todayInLima + "T00:00:00Z");
+  currentWeek.setUTCDate(currentWeek.getUTCDate() - (currentWeek.getUTCDay() + 6) % 7);
+  const forecastWeek = currentWeek.toISOString().slice(0, 10);
+  const [suggestedQuantity, setSuggestedQuantity] = useState(1);
+  const recommendations = role === "buyer"
+    ? recommendPurchases(openProposals.filter(group => !query.data?.participations.some(
+      item => item.groupKey === group.key && item.stall === stall && item.status !== "declined",
+    )), query.data?.needs ?? [], stall, todayInLima, inputs)
+    : [];
+  const openDetail = (key: string, quantity = 1) => {
+    setSuggestedQuantity(quantity);
+    setDetail(key);
+  };
+  const demandStore = query.data
+    ? mode === "pilot" && isCoordinator
+      ? { ...query.data, needs: query.data.coordinatorDemand ?? [] }
+      : query.data
+    : undefined;
+  const demand = demandStore
+    ? mode === "demo"
+      ? outstandingDemandGroups(demandStore, products)
+      : groupNeeds(demandStore, products).filter((g) => g.total > 0)
+    : [];
   const selected =
     groups.find((g) => g.key === detail) ??
     (draft?.key === detail ? draft : undefined);
   const cmp = selected ? comparison(selected, stall) : undefined;
-  const validGroups = groups.filter(
-    (g) => comparison(g, stall).eligible,
-  ).length;
-  const active =
-    query.data?.participations.filter(
-      (p) =>
-        p.stall === stall &&
-        p.status === "confirmed" &&
-        groups.some(
-          (g) => g.key === p.groupKey && signature(g) === p.signature,
-        ),
-    ).length ?? 0;
-  const openForm = (need?: Need) => {
+  const openForm = (need?: Need, suggestion?: { productId: string; quantity: number }) => {
     setEditing(need);
     setNeedRequestId(need?.id ?? crypto.randomUUID());
     mutate.reset();
@@ -155,9 +174,9 @@ export function App({
             sourceRef: need.sourceRef ?? "",
           }
         : {
-            productId: products[0]?.id ?? "",
-            qty: 1,
-            date: groups[0]?.date ?? "",
+            productId: suggestion?.productId ?? products[0]?.id ?? "",
+            qty: suggestion?.quantity ?? 1,
+            date: suggestion ? todayInLima : "",
             mode: "delivery",
           },
     );
@@ -202,16 +221,38 @@ export function App({
     });
     setQuoteOpen(true);
   };
-  const exportData = async (period: ExportPeriod, analytical = false) => {
+  const activeNeeds = mine.filter(need => need.date >= todayInLima && !groups.some(group =>
+    group.needs.some(item => item.id === need.id) && query.data?.participations.some(
+      participation => participation.stall === stall && participation.groupKey === group.key &&
+        participation.status === "confirmed" && participation.signature === signature(group),
+    ),
+  ));
+  const exportData = (period: ExportPeriod) => {
     if (!query.data) return;
-    const data =
-      analytical && repository.exportAnalytical
-        ? await repository.exportAnalytical(period)
-        : createSnapshotExport({ ...query.data, products }, period, isDemo);
-    downloadJson(
-      data,
-      `sumabasto-${analytical ? "resumen-mercado" : "mis-registros"}.json`,
-    );
+    const inside = (date: string) => date >= period.from && date <= period.to;
+    const title = isCoordinator ? "Resumen de abastecimiento del mercado" : "Mis registros de abastecimiento";
+    const columns = isCoordinator
+      ? ["Producto", "Fecha deseada", "Modalidad", "Sacos solicitados", "Propuesta"]
+      : ["Producto", "Fecha deseada", "Modalidad", "Sacos", "Estado"];
+    const modeLabel = (mode: string) => mode === "pickup" ? "Recojo" : "Entrega";
+    const rows = isCoordinator
+      ? groups.filter(group => inside(group.date)).map(group => [
+          group.product.name + " " + group.product.brand, group.date, modeLabel(group.mode),
+          String(group.total), group.quote ? (openProposals.includes(group) ? "Vigente" : "Fuera de vigencia") : "Sin propuesta",
+        ])
+      : query.data.needs.filter(need => need.stall === stall && inside(need.date)).map(need => {
+          const product = products.find(item => item.id === need.productId);
+          const key = [need.origin, need.productId, need.date, need.mode].join("|");
+          const group = groups.find(item => item.key === key);
+          const participation = query.data?.participations.find(item => item.stall === stall && item.groupKey === key);
+          const label = need.status === "withdrawn" ? "Retirada"
+            : participation?.status === "confirmed" && group && participation.signature === signature(group)
+              ? "Participación confirmada" : need.date < todayInLima ? "Fecha pasada"
+                : participation?.status === "pending" ? "Participación pendiente" : "Registrada";
+          return [product ? product.name + " " + product.brand : "Producto", need.date, modeLabel(need.mode), String(need.qty), label];
+        });
+    rows.sort((a, b) => a[1].localeCompare(b[1]) || a[0].localeCompare(b[0], "es"));
+    printReport(title, period.from + " al " + period.to, columns, rows);
   };
   const status = (g: Group) => {
     const c = comparison(g, stall);
@@ -239,16 +280,16 @@ export function App({
       ? [
           {
             id: "overview",
-            title: "Panel de coordinación",
+            title: "Inicio",
             icon: LayoutDashboard,
           },
-          { id: "needs", title: "Necesidades recibidas", icon: ClipboardList },
-          { id: "groups", title: "Gestionar compras", icon: ShoppingBasket },
-          { id: "catalog", title: "Catálogo de productos", icon: Package },
+          { id: "needs", title: "Solicitudes", icon: ClipboardList },
+          { id: "groups", title: "Propuestas", icon: ShoppingBasket },
+          { id: "catalog", title: "Catálogo", icon: Package },
           { id: "evidence", title: "Reportes del mercado", icon: ShieldCheck },
         ]
       : [
-          { id: "overview", title: "Resumen", icon: LayoutDashboard },
+          { id: "overview", title: "Inicio", icon: LayoutDashboard },
           { id: "needs", title: "Mis necesidades", icon: ClipboardList },
           { id: "groups", title: "Compras colectivas", icon: ShoppingBasket },
           { id: "participations", title: "Mis participaciones", icon: Check },
@@ -261,7 +302,7 @@ export function App({
           "Organiza el abastecimiento y mantén las propuestas del mercado al día.",
         ]
       : [
-          "Resumen de abastecimiento.",
+          "Mi puesto",
           "Reúne necesidades, compara condiciones y decide con claridad.",
         ],
     needs: [
@@ -300,7 +341,7 @@ export function App({
       g={g}
       stall={stall}
       status={status}
-      onOpen={setDetail}
+      onOpen={openDetail}
       isDemo={isDemo}
       management={isCoordinator}
     />
@@ -308,7 +349,7 @@ export function App({
   return (
     <div
       className={cn(
-        "app-shell",
+        "app-shell market-workspace",
         !navigation.isMobile &&
           !navigation.desktopVisible &&
           "sidebar-collapsed",
@@ -318,19 +359,18 @@ export function App({
         <a
           href="#"
           className="brand"
+          aria-label="Sumabasto · Inicio"
           onClick={(e) => {
             e.preventDefault();
             setView("overview");
             if (navigation.isMobile) navigation.close();
           }}
         >
-          <BrandLogo compact />
+          <span className="sidebar-wordmark"><BrandLogo compact /></span>
+          <img className="sidebar-mark" src="/brand/sumabasto-bolsas.png" alt="" width={36} height={36} />
         </a>
-        <div className="market-label">
-          <span className="size-2 rounded-full bg-[#b6cb81]" /> Mercado de
-          Productores <p>Los Olivos · Lima</p>
-        </div>
-        <nav className="mt-8 flex flex-col gap-2">
+
+        <nav aria-label="Secciones de Sumabasto" className="workspace-links flex flex-col gap-2">
           {nav.map((n) => (
             <button
               key={n.id}
@@ -339,39 +379,27 @@ export function App({
                 if (navigation.isMobile) navigation.close();
               }}
               aria-current={view === n.id ? "page" : undefined}
+              aria-label={n.title}
+              title={n.title}
               className={cn("nav-item", view === n.id && "nav-active")}
             >
-              <n.icon size={19} />
-              {n.title}
-              {view === n.id && <ChevronRight className="ml-auto" size={15} />}
+              <n.icon size={19} aria-hidden="true" />
+              <span className="nav-label">{n.title}</span>
+              {view === n.id && <ChevronRight className="nav-chevron ml-auto" size={15} />}
             </button>
           ))}
         </nav>
-        <div className="sidebar-bottom">
-          <div className="flex gap-3">
-            <ShieldCheck size={20} className="text-[#c2d785]" />
-            <div>
-              <strong className="text-sm">Tu espacio de compras</strong>
-              <p className="mt-2 text-xs leading-5 text-[#becbc3]">
-                Necesidades y propuestas en un solo lugar.
-              </p>
-            </div>
-          </div>
-          <p className="mt-6 text-[11px] text-[#91a79a]">
-            MERPROLIMA · LOS OLIVOS
-          </p>
-        </div>
       </WorkspaceSidebar>
       <div className="main-shell">
         <header className="topbar">
           <div className="flex items-center gap-3">
             <button
               ref={navigation.toggleRef}
-              className="sidebar-toggle"
+              className="sidebar-toggle mobile-sidebar-toggle"
               aria-label={
                 navigation.expanded
-                  ? "Ocultar panel lateral"
-                  : "Mostrar panel lateral"
+                  ? "Contraer navegación"
+                  : "Expandir navegación"
               }
               aria-expanded={navigation.expanded}
               aria-controls="workspace-navigation"
@@ -379,8 +407,6 @@ export function App({
             >
               <Menu />
             </button>
-            <span className="desktop-breadcrumb text-sm muted">Tu mercado</span>
-            <ChevronRight size={14} className="muted" />
             <strong className="text-sm">Merprolima</strong>
           </div>
           <div className="flex items-center gap-3">
@@ -388,15 +414,28 @@ export function App({
               {role === "coordinator" ? "Coordinación" : "Mi puesto"}
             </span>
             {accountAction}
-            <div className="avatar">{role === "buyer" ? "P" : "C"}</div>
+
           </div>
         </header>
-        <main className="page">
+        {!isCoordinator && (
+          <nav aria-label="Accesos de mi puesto" className="fixed inset-x-0 bottom-0 z-30 flex justify-around border-t border-[#dce7dc] bg-white px-2 pt-2 pb-[max(.5rem,env(safe-area-inset-bottom))] sm:hidden">
+            {nav.filter(item => item.id !== "evidence").map(item => (
+              <button key={item.id} onClick={() => setView(item.id)}
+                aria-current={view === item.id ? "page" : undefined}
+                className={cn("grid min-h-11 min-w-14 place-items-center rounded-lg px-1 text-[11px]", view === item.id && "bg-[#e9f3e9] font-semibold text-[#24533c]")}>
+                <item.icon size={19} aria-hidden="true" />
+                {item.id === "overview" ? "Inicio" : item.id === "needs" ? "Necesidades" : item.id === "groups" ? "Compras" : "Participación"}
+              </button>
+            ))}
+          </nav>
+        )}
+        <main className={cn("page", !isCoordinator && "max-sm:!pb-24")}>
           <div className="page-heading">
             <div>
-              <p className="eyebrow">ABASTECIMIENTO COMPARTIDO</p>
-              <h1>{headings[view][0]}</h1>
-              <p className="mt-3 muted">{headings[view][1]}</p>
+              <h1>{headings[view][0].replace(/\.$/, "")}</h1>
+              <p className="mt-2 text-sm muted">{view === "overview"
+                ? isCoordinator ? "Solicitudes y propuestas de tu mercado" : stall
+                : headings[view][1]}</p>
             </div>
             {!isCoordinator && view === "needs" && (
               <Button
@@ -407,7 +446,7 @@ export function App({
               </Button>
             )}
             {isCoordinator &&
-              ["overview", "groups", "needs"].includes(view) && (
+              ["groups", "needs"].includes(view) && (
                 <Button
                   disabled={!products.length || query.isError}
                   onClick={() => setComposerOpen(true)}
@@ -428,37 +467,6 @@ export function App({
               />
             </div>
           )}
-          <div className="context-bar">
-            <label className="flex items-center gap-3 text-sm">
-              <span className="muted">Puesto</span>
-              <select
-                disabled={!isDemo}
-                aria-label="Puesto"
-                value={stall}
-                onChange={(e) => setStall(e.target.value)}
-              >
-                {(isDemo ? stalls : [stall]).map((s) => (
-                  <option key={s} value={s}>
-                    {s === "COORD-G8"
-                      ? "Coordinación"
-                      : s.replace("TESTER-", "Puesto ")}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="flex items-center gap-3 text-sm">
-              <span className="muted">Vista</span>
-              <select
-                disabled={!isDemo}
-                aria-label="Vista"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-              >
-                <option value="buyer">Comprador</option>
-                <option value="coordinator">Coordinador</option>
-              </select>
-            </label>
-          </div>
           {(notice || mutate.isError) && (
             <div role="status" className="notice">
               {notice ||
@@ -492,159 +500,54 @@ export function App({
           ) : (
             <>
               {view === "overview" && (
-                <>
+                <div className="grid gap-6">
                   {isCoordinator ? (
-                    <CoordinationPanel
-                      groups={groups}
-                      onOpen={setDetail}
-                      onManage={() => setView("groups")}
-                    />
+                    <section className="white-panel">
+                      <h2 className="text-xl font-semibold">Solicitudes del mercado</h2>
+                      <p className="mt-2 text-sm muted">Consulta las cantidades registradas y el pronóstico semanal en una sola bandeja.</p>
+                      <Button className="mt-4" onClick={() => setView("needs")}>Ver solicitudes</Button>
+                    </section>
                   ) : (
-                    <>
-                      <section className="hero-panel">
-                        <div>
-                          <span className="hero-tag">
-                            <span className="size-1.5 bg-[#d7e8ac] rounded-full" />{" "}
-                            COORDINA SIN COMPLICARTE
-                          </span>
-                          <h2>
-                            El mismo mercado.
-                            <br />
-                            Una compra mejor pensada.
-                          </h2>
-                          <p>
-                            Tu necesidad puede sumar a la de otros puestos.
-                            <br className="hidden md:block" /> Revisa producto,
-                            volumen y condiciones antes de confirmar.
-                          </p>
-                          <button
-                            onClick={() => setView("groups")}
-                            className="hero-link"
-                          >
-                            Explorar compras colectivas <ArrowRight size={18} />
-                          </button>
-                        </div>
-                        <div className="hero-art" aria-hidden="true">
-                          <div className="art-circle" />
-                          <div className="sack sack-one">
-                            <Wheat size={45} />
-                            <span>ARROZ</span>
-                            <small>50 kg</small>
-                          </div>
-                          <div className="sack sack-two">
-                            <Leaf size={40} />
-                            <span>AZÚCAR</span>
-                            <small>50 kg</small>
-                          </div>
-                          <div className="floating-label">
-                            <Users size={17} /> El volumen suma
-                          </div>
-                        </div>
-                      </section>
-                      <section className="stats">
-                        <div>
-                          <span className="stat-icon">
-                            <ClipboardList size={19} />
-                          </span>
-                          <p>Mis necesidades activas</p>
-                          <strong>
-                            {mine.length.toString().padStart(2, "0")}
-                          </strong>
-                          <small>Reposiciones por coordinar</small>
-                        </div>
-                        <div>
-                          <span className="stat-icon">
-                            <ShoppingBasket size={19} />
-                          </span>
-                          <p>Propuestas con volumen</p>
-                          <strong>
-                            {validGroups.toString().padStart(2, "0")}
-                          </strong>
-                          <small>Revisa el costo total</small>
-                        </div>
-                        <div>
-                          <span className="stat-icon">
-                            <Check size={19} />
-                          </span>
-                          <button
-                            className="text-left"
-                            onClick={() => setView("participations")}
-                          >
-                            Mis participaciones →
-                          </button>
-                          <strong>{active.toString().padStart(2, "0")}</strong>
-                          <small>Confirmaciones vigentes</small>
-                        </div>
-                      </section>
-                    </>
+                    <Recommendations items={recommendations} onOpen={openDetail}
+                      onRegister={() => openForm()}
+                      shortages={products.flatMap(product => {
+                        if (openProposals.some(group => group.product.id === product.id) ||
+                          mine.some(need => need.productId === product.id && need.date >= todayInLima)) return [];
+                        const row = inputs?.find(input => input.productId === product.id && input.week === forecastWeek);
+                        const estimate = row ? predictProduct(product, row) : undefined;
+                        return estimate !== undefined && estimate >= 1
+                          ? [{ product, quantity: Math.round(estimate) }] : [];
+                      })}
+                      onRegisterSuggested={(productId, quantity) => openForm(undefined, { productId, quantity })} />
                   )}
-                  <div className="section-heading">
-                    <div>
-                      <h2>Compras en coordinación</h2>
-                      <p className="muted text-sm mt-1">
-                        Productos compatibles, cantidades visibles.
-                      </p>
-                    </div>
-                    <Button variant="ghost" onClick={() => setView("groups")}>
-                      Ver todas <ArrowRight size={16} />
-                    </Button>
-                  </div>
-                  <section className="cards-grid">
-                    {published.slice(0, 3).map(card)}
-                  </section>
-                  {!published.length && (
-                    <div className="empty workspace-empty">
-                      <ShoppingBasket size={32} />
-                      <h2>
-                        {isCoordinator
-                          ? "Prepara la primera propuesta"
-                          : "Aún no hay compras publicadas"}
+                  <section aria-labelledby="open-purchases">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <h2 id="open-purchases" className="text-lg font-semibold">
+                        {isCoordinator ? "Propuestas vigentes" : "Compras abiertas"}
                       </h2>
-                      <p>
-                        {isCoordinator
-                          ? "Consulta las necesidades recibidas y publica una compra colectiva."
-                          : "Puedes registrar tu necesidad para que coordinación prepare una propuesta."}
-                      </p>
-                      <Button
-                        disabled={!products.length}
-                        onClick={() => setView("needs")}
-                      >
-                        <Plus size={17} />
-                        {isCoordinator
-                          ? "Ver necesidades recibidas"
-                          : "Ir a mis necesidades"}
-                      </Button>
+                      <Button variant="ghost" onClick={() => setView("groups")}>Ver compras</Button>
                     </div>
-                  )}
-                  <div className="how-panel">
-                    <ShieldCheck size={24} />
-                    <div>
-                      <h3 className="font-semibold">
-                        Condiciones antes de participar.
-                      </h3>
-                      <p className="muted text-sm mt-1">
-                        Revisa el costo total, la entrega y la vigencia de cada
-                        propuesta.
-                      </p>
-                    </div>
-                  </div>
-                </>
+                    {openProposals.length ? (
+                      <div className="cards-grid">{openProposals.slice(0, 3).map(card)}</div>
+                    ) : <p className="muted text-sm">No hay compras abiertas en este momento.</p>}
+                  </section>
+                </div>
               )}
               {view === "groups" && (
                 <>
                   <div className="section-heading">
-                    <h2>{published.length} compras publicadas</h2>
+                    <h2>{openProposals.length} compras vigentes</h2>
                     <span className="text-xs muted">
                       Entrega o recojo compatibles
                     </span>
                   </div>
                   <section className="cards-grid">
-                    {published.map(card)}
+                    {openProposals.map(card)}
                   </section>
-                  {!published.length && (
+                  {!openProposals.length && (
                     <div className="empty">
                       <ShoppingBasket />
-                      <h2>No hay compras publicadas</h2>
+                      <h2>No hay compras vigentes</h2>
                       <p>
                         {isCoordinator
                           ? "Revisa las necesidades recibidas o crea una nueva propuesta."
@@ -684,34 +587,30 @@ export function App({
                   participations={query.data?.participations ?? []}
                   groups={groups}
                   products={products}
+                  today={todayInLima}
                   stall={stall}
-                  onOpen={setDetail}
+                  onOpen={openDetail}
                   onBrowse={() => setView("groups")}
                 />
               )}
               {view === "needs" && isCoordinator && (
-                <section className="white-panel">
-                  <div className="section-heading">
-                    <div>
-                      <h2>Demanda de los clientes</h2>
-                      <p className="text-sm muted mt-1">
-                        Agrupada por producto, fecha y modalidad. Solo los
-                        clientes registran cantidades.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="cards-grid">{demand.map(card)}</div>
-                  {!demand.length && (
-                    <div className="empty">
-                      <ClipboardList />
-                      <h3>Aún no hay necesidades recibidas</h3>
-                      <p>
-                        Puedes preparar una propuesta desde Crear compra
-                        colectiva.
-                      </p>
-                    </div>
-                  )}
-                </section>
+                <CoordinationPanel groups={demand.filter(group => group.date >= todayInLima)}
+                      inputs={inputs ?? []}
+                      products={products}
+                      today={todayInLima}
+                      forecastUnavailable={query.data?.forecastUnavailable}
+                      onPrepare={(product, pendingGroup) => {
+                        const origin = query.data?.identity?.origin ?? "simulated";
+                        const date = pendingGroup?.date ?? todayInLima;
+                        const key = pendingGroup?.key ?? [origin, product.id, date, "delivery"].join("|");
+                        const group: Group = groups.find(item => item.key === key) ?? pendingGroup ?? {
+                          key, product, date, mode: "delivery", origin, needs: [], total: 0,
+                        };
+                        setDraft(group);
+                        setDetail(key);
+                        openQuote(group);
+                      }}
+                      />
               )}
               {view === "needs" && !isCoordinator && (
                 <section className="white-panel">
@@ -724,7 +623,7 @@ export function App({
                     </h2>
                     <span className="badge badge-neutral">Activas</span>
                   </div>
-                  {mine.length ? (
+                  {activeNeeds.length ? (
                     <div className="overflow-x-auto">
                       <table>
                         <thead>
@@ -737,7 +636,7 @@ export function App({
                           </tr>
                         </thead>
                         <tbody>
-                          {mine.map((n) => {
+                          {activeNeeds.map((n) => {
                             const p = products.find(
                               (p) => p.id === n.productId,
                             )!;
@@ -811,8 +710,7 @@ export function App({
                 <EvidencePanel
                   isDemo={isDemo}
                   exportData={exportData}
-                  canExportAnalytical={!isDemo && role === "coordinator"}
-                  origin={query.data?.identity?.origin ?? "simulated"}
+                  isCoordinator={isCoordinator}
                   onReset={() => setResetOpen(true)}
                 />
               )}
@@ -840,6 +738,7 @@ export function App({
         quoteOpen={quoteOpen}
         setQuoteOpen={setQuoteOpen}
         setDetail={setDetail}
+        suggestedQuantity={suggestedQuantity}
         cmp={cmp}
         dateLabel={dateLabel}
         status={status}

@@ -1,120 +1,38 @@
+import { ArrowRight, ClipboardList, ShoppingBasket, Users } from "lucide-react";
 import { BrandLogo } from "../../../shared/ui/BrandLogo";
-import {
-  ArrowRight,
-  ShoppingBasket,
-  Wheat,
-  Leaf,
-  Users,
-  ClipboardList,
-  Truck,
-  ShieldCheck,
-} from "lucide-react";
 import { Button } from "../../../components/ui/button";
-export function FieldOverview({
-  onPilot,
-  onTest,
-}: {
-  onPilot: () => void;
-  onTest: () => void;
-}) {
+
+export function FieldOverview({ onPilot }: { onPilot: () => void }) {
   return (
     <div className="landing">
       <header className="landing-header">
-        <a href="#" className="landing-brand">
-          <BrandLogo />
-        </a>
-        <Button variant="outline" onClick={onPilot}>
-          Ingresar a mi cuenta
-        </Button>
+        <BrandLogo />
+        <span className="muted text-sm">Merprolima · Los Olivos</span>
       </header>
       <main className="landing-content">
         <section className="landing-hero">
           <div>
-            <p className="eyebrow">MERCADO DE PRODUCTORES · LOS OLIVOS</p>
-            <h1>Las compras de tu puesto, mejor coordinadas.</h1>
+            <h1>Compra en conjunto con otros puestos de tu mercado</h1>
             <p className="landing-description">
-              Reúne necesidades con otros puestos, compara el costo de
-              abastecimiento y organiza la reposición en un solo lugar.
+              Registra lo que necesitas, revisa las compras abiertas y elige
+              cuántos sacos pedir.
             </p>
             <div className="landing-actions">
               <Button onClick={onPilot}>
-                Ingresar a la plataforma <ArrowRight size={18} />
-              </Button>
-              <Button variant="ghost" onClick={onTest}>
-                Explorar plataforma
+                Iniciar sesión <ArrowRight size={18} />
               </Button>
             </div>
-            <div className="landing-detail">
-              <ShieldCheck size={18} />
-              <span>
-                Acceso por puesto · Entrega o recojo · Condiciones claras
-              </span>
-            </div>
           </div>
-          <div className="landing-illustration">
-            <div className="illustration-heading">
-              <span className="product-icon">
-                <ShoppingBasket size={25} />
-              </span>
-              <div>
-                <p className="eyebrow">TU MERCADO</p>
-                <h2>Abastecimiento compartido</h2>
-              </div>
-            </div>
-            <div className="landing-products">
-              <div>
-                <Wheat size={45} />
-                <strong>Arroz</strong>
-                <span>Marca y presentación</span>
-              </div>
-              <div>
-                <Leaf size={45} />
-                <strong>Azúcar</strong>
-                <span>Marca y presentación</span>
-              </div>
-            </div>
-            <div className="illustration-flow">
-              <Users size={20} />
-              <span>Necesidades compatibles</span>
-              <ArrowRight size={18} />
-              <ShoppingBasket size={21} />
-            </div>
-            <p className="muted text-sm">
-              Producto, cantidad, fecha y modalidad en una misma propuesta.
-            </p>
-          </div>
-        </section>
-        <section className="landing-features" aria-label="Cómo funciona">
-          <article>
-            <ClipboardList size={24} />
-            <h2>Organiza tu reposición</h2>
-            <p>
-              Registra qué necesitas y ajusta cantidades conforme se vende cada
-              marca.
-            </p>
-          </article>
-          <article>
-            <Users size={24} />
-            <h2>Reúne volumen</h2>
-            <p>
-              Encuentra necesidades que comparten producto, fecha y forma de
-              recepción.
-            </p>
-          </article>
-          <article>
-            <Truck size={24} />
-            <h2>Compara y participa</h2>
-            <p>
-              Revisa precios, transporte y reparto antes de decidir sobre la
-              propuesta.
-            </p>
-          </article>
+          <section className="landing-illustration" aria-labelledby="landing-flow">
+            <h2 id="landing-flow">Cómo funciona</h2>
+            <ul className="landing-flow">
+              <li><ClipboardList aria-hidden="true" /> Registra tu reposición</li>
+              <li><Users aria-hidden="true" /> Revisa las propuestas del mercado</li>
+              <li><ShoppingBasket aria-hidden="true" /> Súmate a una compra colectiva</li>
+            </ul>
+          </section>
         </section>
       </main>
-      <footer className="landing-footer">
-        <strong>Sumabasto · Compras colectivas</strong>
-        <span>Coordinación entre puestos de abarrotes</span>
-      </footer>
     </div>
   );
 }
