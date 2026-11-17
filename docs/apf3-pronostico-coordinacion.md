@@ -47,3 +47,5 @@ El navegador aplica la escala exportada a las cuatro cantidades y agrega la codi
 La prueba SQL se ejecutó sobre el piloto dentro de una transacción revertida. Confirmó que una semana sin registro excluye el pronóstico, que los retiros aportan cero a un historial con cobertura y que el cierre de una semana observada se conserva como cero.
 
 El JSON del árbol ocupa 3 151 bytes. La mediana local de 32 inferencias en Edge fue 0,061 ms (percentil 95 de 0,081 ms), medida en 20 repeticiones de 1 000 lotes. Estos tiempos corresponden a ejecución local y excluyen la consulta y el renderizado.
+
+La migración `20261117170000_refresh_open_forecast_inputs.sql` actualiza las entradas de la semana abierta al reconstruir el corte. Los registros de semanas cerradas conservan las entradas almacenadas. El paquete del informe incluye el caso de Cartavio que compara la extracción de solicitudes del piloto, la respuesta autenticada y la cifra que muestra la interfaz.
