@@ -376,6 +376,20 @@ export function App({
       management={isCoordinator}
     />
   );
+  if (!isDemo && !query.data?.identity) {
+    return (
+      <main className="loading-screen">
+        <BrandLogo />
+        <p role="status">
+          {query.isError
+            ? "No se pudo verificar tu acceso al mercado."
+            : "Verificando tu acceso al mercado…"}
+        </p>
+        {query.isError && accountAction}
+      </main>
+    );
+  }
+
   return (
     <div
       className={cn(
