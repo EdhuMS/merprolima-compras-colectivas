@@ -28,6 +28,10 @@ npm run build
 
 La aplicación usa React, TypeScript, Vite, Tailwind y Supabase. La autenticación exige una membresía activa con puesto y rol. Configura las variables publicables de `.env.example` para conectar el entorno autorizado. En el cliente se utiliza la clave publicable de Supabase.
 
+## Datos y cuaderno del APF3
+
+El [directorio ml](ml/README.md) contiene los dos CSV simulados, el notebook ejecutado, el script y las dependencias. El conjunto de prueba tiene 4 736 filas (8 perfiles × 4 presentaciones × 148 semanas).
+
 ## Documentación
 
 - [Pronóstico, integración y verificación del APF3](docs/apf3-pronostico-coordinacion.md)
