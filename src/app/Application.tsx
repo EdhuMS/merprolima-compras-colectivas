@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { navigate, usePathname } from "./navigation";
+import { useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { BrandLogo } from "../shared/ui/BrandLogo";
 import { FieldOverview } from "../features/field/ui/FieldOverview";
@@ -10,15 +11,15 @@ import { requireSupabase } from "../infrastructure/supabase/client";
 import { Button } from "../components/ui/button";
 
 export function Application() {
-  const [login, setLogin] = useState(false);
+  const pathname = usePathname();
   const { session, loading } = useSession();
   const client = useQueryClient();
   const repository = useMemo(() => new SupabasePurchaseRepository(), [session?.user.id]);
 
   if (loading) return <div className="loading-screen"><BrandLogo /><p>Cargando Sumabasto…</p></div>;
-  if (!session) return login
-    ? <Login onBack={() => setLogin(false)} />
-    : <FieldOverview onPilot={() => setLogin(true)} />;
+  if (!session) return pathname !== "/"
+    ? <Login onBack={() => navigate("/", true)} />
+    : <FieldOverview onPilot={() => navigate("/iniciar-sesion")} />;
 
   return (
     <App key={session.user.id} mode="pilot" workspaceKey={session.user.id} repository={repository}
@@ -26,7 +27,7 @@ export function Application() {
         const { error } = await requireSupabase().auth.signOut();
         if (!error) {
           client.clear();
-          setLogin(false);
+          navigate("/", true);
         }
       }}>Salir</Button>}
     />

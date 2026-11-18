@@ -1,3 +1,4 @@
+import { navigate, usePathname } from "../../../app/navigation";
 import { predictProduct } from "../domain/marketForecast";
 import { Recommendations } from "./Recommendations";
 import { recommendPurchases } from "../domain/recommendations";
@@ -82,17 +83,14 @@ export function App({
   workspaceKey: string;
   accountAction: ReactNode;
 }) {
-  const [view, setView] = useState<View>("overview");
-  useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  }, [view]);
+  const pathname = usePathname();
   const [demoStall] = useState(stalls[0]);
   const [demoRole] = useState("buyer");
   const navigation = useWorkspaceSidebar();
   const [formOpen, setFormOpen] = useState(false);
   const [needRequestId, setNeedRequestId] = useState<string>();
   const [editing, setEditing] = useState<Need>();
-  const [detail, setDetail] = useState<string>();
+  const [localDetail, setLocalDetail] = useState<string>();
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [draft, setDraft] = useState<Group>();
   const [composerOpen, setComposerOpen] = useState(false);
@@ -109,9 +107,40 @@ export function App({
     mode === "demo" ? demoRole : (query.data?.identity?.role ?? "buyer");
   const isDemo = mode === "demo";
   const isCoordinator = role === "coordinator";
+  const prefix = isCoordinator ? "/coordinacion" : "/tienda";
+  const routes: Partial<Record<View, string>> = {
+    overview: "inicio", needs: isCoordinator ? "solicitudes" : "necesidades",
+    groups: isCoordinator ? "propuestas" : "compras", evidence: "reportes",
+    ...(isCoordinator ? { catalog: "catalogo" } : { participations: "participaciones" }),
+  };
+  const [, , section, item, ...extra] = pathname.split("/");
+  const matched = pathname.startsWith(prefix + "/") && !extra.length
+    ? (Object.keys(routes) as View[]).find(key => routes[key] === section && (!item || key === "groups"))
+    : undefined;
+  const view = matched ?? "overview";
+  const href = (section: View) => prefix + "/" + (routes[section] ?? routes.overview);
+  const setView = (section: View) => {
+    setLocalDetail(undefined);
+    navigate(href(section));
+  };
+  let routeDetail: string | undefined;
+  if (matched === "groups" && item) {
+    try { routeDetail = decodeURIComponent(item); } catch { /* Invalid link. */ }
+  }
+  const detail = routeDetail ?? localDetail;
+  const setDetail = (key: string | undefined) => {
+    setLocalDetail(key);
+    if (!key && routeDetail) navigate(href("groups"), true);
+  };
   useEffect(() => {
-    setView("overview");
-  }, [role]);
+    if (!isDemo && query.data?.identity && (!matched || (item && !routeDetail))) {
+      navigate(prefix + "/inicio", true);
+    }
+  }, [isDemo, query.data?.identity, matched, item, routeDetail, prefix]);
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    setLocalDetail(undefined);
+  }, [pathname]);
   const originLabel = "del mercado";
   const form = useForm<NeedInput>({
     resolver: zodResolver(needSchema),
@@ -144,7 +173,8 @@ export function App({
     : [];
   const openDetail = (key: string, quantity = 1) => {
     setSuggestedQuantity(quantity);
-    setDetail(key);
+    setLocalDetail(undefined);
+    navigate(href("groups") + "/" + encodeURIComponent(key));
   };
   const demandStore = query.data
     ? mode === "pilot" && isCoordinator
@@ -372,9 +402,12 @@ export function App({
 
         <nav aria-label="Secciones de Sumabasto" className="workspace-links flex flex-col gap-2">
           {nav.map((n) => (
-            <button
+            <a
               key={n.id}
-              onClick={() => {
+              href={href(n.id)}
+              onClick={(event) => {
+                if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                event.preventDefault();
                 setView(n.id);
                 if (navigation.isMobile) navigation.close();
               }}
@@ -386,7 +419,7 @@ export function App({
               <n.icon size={19} aria-hidden="true" />
               <span className="nav-label">{n.title}</span>
               {view === n.id && <ChevronRight className="nav-chevron ml-auto" size={15} />}
-            </button>
+            </a>
           ))}
         </nav>
       </WorkspaceSidebar>
