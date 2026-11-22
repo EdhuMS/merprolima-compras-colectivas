@@ -2,7 +2,7 @@
 
 Avance 3 de Innovación y Transformación Digital, Grupo 8. Sumabasto ayuda a los puestos de Merprolima a registrar necesidades y coordinar compras colectivas.
 
-[Abrir Sumabasto en producción](https://merprolima-compras-colectivas.vercel.app/) · [Cuaderno de Google Colab](https://colab.research.google.com/drive/10W32CkSClLiJ_cTWK16Vo0BVO1P0j0o4)
+[Abrir demostración de Sumabasto](https://merprolima-compras-colectivas.vercel.app/) · [Cuaderno de Google Colab](https://colab.research.google.com/drive/10W32CkSClLiJ_cTWK16Vo0BVO1P0j0o4)
 
 ## Mejoras del APF3
 
@@ -38,3 +38,12 @@ El [directorio ml](ml/README.md) contiene los dos CSV simulados, el notebook eje
 - [Contrato de datos](docs/contrato-datos.md)
 - [Arquitectura del piloto en APF2](docs/arquitectura-piloto.md)
 - [Estado histórico del MVP en APF2](docs/estado-mvp.md)
+
+
+## Carácter académico y reproducibilidad
+
+El proyecto corresponde al APF3 del **Grupo 8**. Los indicadores y resultados del modelo se refieren a datos **simulados**, no a resultados observados en operaciones comerciales reales. Las métricas del modelo deben interpretarse dentro del conjunto y la metodología de evaluación documentados. La aplicación demostrativa y sus servicios externos pueden cambiar con el tiempo.
+
+## Licenciamiento, colaboración y terceros
+
+**Licencia del código pendiente de acuerdo entre los titulares.** No se ha identificado un archivo `LICENSE` que conceda permisos generales de reutilización. Antes de adoptar MIT u otra licencia, corresponde confirmar las contribuciones y autorización del equipo, así como los derechos de conjuntos de datos, imágenes, marcas y recursos incluidos. Los paquetes de terceros conservan sus propias licencias. Los datos de simulación del proyecto no deben confundirse con información real de comerciantes.
