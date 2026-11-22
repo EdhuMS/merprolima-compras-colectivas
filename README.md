@@ -44,6 +44,9 @@ El [directorio ml](ml/README.md) contiene los dos CSV simulados, el notebook eje
 
 El proyecto corresponde al APF3 del **Grupo 8**. Los indicadores y resultados del modelo se refieren a datos **simulados**, no a resultados observados en operaciones comerciales reales. Las métricas del modelo deben interpretarse dentro del conjunto y la metodología de evaluación documentados. La aplicación demostrativa y sus servicios externos pueden cambiar con el tiempo.
 
-## Licenciamiento, colaboración y terceros
+## Licencia, colaboración y terceros
 
-**Licencia del código pendiente de acuerdo entre los titulares.** No se ha identificado un archivo `LICENSE` que conceda permisos generales de reutilización. Antes de adoptar MIT u otra licencia, corresponde confirmar las contribuciones y autorización del equipo, así como los derechos de conjuntos de datos, imágenes, marcas y recursos incluidos. Los paquetes de terceros conservan sus propias licencias. Los datos de simulación del proyecto no deben confundirse con información real de comerciantes.
+El **código original del proyecto Sumabasto** se publica bajo la **[licencia MIT](LICENSE)**, con acuerdo del equipo de desarrollo. El desarrollo puede continuar y el licenciamiento de esta versión no implica que todas las funciones estén finalizadas ni aprobadas para uso comercial en producción.
+
+La licencia MIT del código propio no reemplaza las licencias de dependencias, marcas, imágenes, recursos de terceros o datos que tengan condiciones independientes. Los conjuntos simulados y resultados experimentales no representan información real de comerciantes. Para reutilizar cualquier contenido externo, consulta sus condiciones de origen.
+
