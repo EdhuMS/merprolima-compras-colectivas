@@ -1,9 +1,16 @@
+# FastAPI is deployed to Render; Vercel serves the React frontend only.
 /.git/
 /node_modules/
-/docs/
-/supabase/
 /dist/
 /.openai/
 *.py
-.env*
 *.tsbuildinfo
+api/
+ml/
+supabase/
+docs/
+e2e/
+test-results/
+playwright-report/
+.env*
+render.yaml
