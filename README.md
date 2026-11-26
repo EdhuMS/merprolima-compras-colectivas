@@ -1,4 +1,23 @@
-# Sumabasto · APF3
+# Sumabasto
+
+## Proyecto final en desarrollo
+
+Hito 1 local: Ridge seleccionado mediante cinco folds temporales, pipeline exportado y evaluación
+en trayectoria sintética 2028. MAE: regla al corte **0,53125**, árbol corregido **0,95809**,
+Ridge **0,95384**. Ridge mejora levemente al árbol corregido y pierde frente a la regla;
+la cantidad operativa sigue siendo la registrada al corte. No hay validación real reservada completada.
+
+Hito 2: [servicio FastAPI y contrato](api/README.md), registro privado en Supabase y consulta
+orientativa en React. Las migraciones de registro se aplicaron; la integración pública Render–Vercel
+todavía requiere configuración y verificación. [Cambios respecto de APF3](CHANGELOG.md).
+
+Hito 3: `npm run test:e2e` ejecuta Playwright con Chrome instalado en móvil, tablet y escritorio.
+Los recorridos interceptan servicios con fixtures locales, sin representar actividad real de la MiPYME.
+`npm test` verifica dominio y contratos; `npm run build` compila la aplicación.
+
+El notebook PROY local es distinto del Colab histórico enlazado a continuación; no está publicado en Colab.
+
+## Antecedente APF3
 
 Avance 3 de Innovación y Transformación Digital, Grupo 8. Sumabasto ayuda a los puestos de Merprolima a registrar necesidades y coordinar compras colectivas.
 

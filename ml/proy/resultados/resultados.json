@@ -1,0 +1,133 @@
+{
+  "version": "sumabasto-proy-candidato-v1",
+  "sha256": "abc4f18d092a45ea17a8ccc2085ffa3e1bfb2480cccbbb60afb7864a4c19263f",
+  "seleccion": "ridge_1",
+  "status": "candidato; falta validacion real y criterio siete",
+  "coherencia_desarrollo": {
+    "criterios": {
+      "escala": true,
+      "rangos_unidades": true,
+      "consistencia_temporal": true,
+      "relaciones_plausibles": true,
+      "senal_no_perfecta": true,
+      "contrato": true,
+      "mezcla_real_simulado": false
+    },
+    "correlacion_corte_cierre": 0.6076128491248638,
+    "real": 0,
+    "simulado": 4736
+  },
+  "coherencia_prueba": {
+    "criterios": {
+      "escala": true,
+      "rangos_unidades": true,
+      "consistencia_temporal": true,
+      "relaciones_plausibles": true,
+      "senal_no_perfecta": true,
+      "contrato": true,
+      "mezcla_real_simulado": false
+    },
+    "correlacion_corte_cierre": 0.6050593256710716,
+    "real": 0,
+    "simulado": 4736
+  },
+  "metricas": [
+    {
+      "modelo": "dummy_mediana",
+      "MAE": 0.901393581081081,
+      "RMSE": 2.1975397023133034,
+      "R2": -0.2022845581431434,
+      "WAPE": 100.0
+    },
+    {
+      "modelo": "regla_al_corte",
+      "MAE": 0.53125,
+      "RMSE": 1.682456175888033,
+      "R2": 0.29527231924852515,
+      "WAPE": 58.936519091122044
+    },
+    {
+      "modelo": "promedio_3",
+      "MAE": 1.501829954954955,
+      "RMSE": 2.3212666593702465,
+      "R2": -0.3414789931389861,
+      "WAPE": 166.6120090575467
+    },
+    {
+      "modelo": "arbol_corregido",
+      "MAE": 0.9580949595512017,
+      "RMSE": 1.6033855879125187,
+      "R2": 0.3599561038961686,
+      "WAPE": 106.2904129406065
+    },
+    {
+      "modelo": "ridge_1",
+      "MAE": 0.9538410331146208,
+      "RMSE": 1.5967047576868374,
+      "R2": 0.365278736428848,
+      "WAPE": 105.81848519163374
+    }
+  ],
+  "por_corte": {
+    "0": {
+      "dummy_mediana": 0.5480901978831109,
+      "regla_al_corte": 0.5480901978831109,
+      "promedio_3": 1.2659150176407425,
+      "arbol_corregido": 0.9934764416776956,
+      "ridge_1": 0.9931235304175693
+    },
+    "1": {
+      "dummy_mediana": 4.838461538461538,
+      "regla_al_corte": 0.3435897435897436,
+      "promedio_3": 4.130769230769231,
+      "arbol_corregido": 0.5638182382133995,
+      "ridge_1": 0.516092999066895
+    }
+  },
+  "sensibilidad": [
+    {
+      "escenario": "menos anticipacion",
+      "MAE": 1.1192133583375576,
+      "RMSE": 1.8470161683743445,
+      "R2": 0.15682579738291202,
+      "WAPE": 123.12646841084026
+    },
+    {
+      "escenario": "mas retiros",
+      "MAE": 1.0201975201707714,
+      "RMSE": 1.715827113010607,
+      "R2": 0.24314644828754117,
+      "WAPE": 118.07564651829846
+    },
+    {
+      "escenario": "mezcla desigual",
+      "MAE": 0.9927824503676256,
+      "RMSE": 1.6697123422381066,
+      "R2": 0.30384337217258073,
+      "WAPE": 110.57896719052387
+    }
+  ],
+  "delta_MAE_vs_corte_IC95_bootstrap_semanal": [
+    0.4166088961968429,
+    0.42843256790361245
+  ],
+  "regla_operativa": "mantener corte si candidato no supera MAE de regla; recomendaciones solo apoyo",
+  "ejemplo": {
+    "entrada": {
+      "producto": "CARTAVIO-50KG",
+      "ultima": 0,
+      "media_3": 0.0,
+      "media_8": 0.625,
+      "al_corte": 0
+    },
+    "estimado": 0.5864035251536975
+  },
+  "particion": {
+    "entrenamiento_semillas": [
+      42
+    ],
+    "semanas_ajuste": 125,
+    "prueba_nueva_semilla": 2028,
+    "real_reservado": 0
+  }
+}

@@ -2,6 +2,7 @@ import { Button } from "../../../components/ui/button";
 import { dateLabel } from "../../../lib/utils";
 import { marketForecasts, type ForecastInput } from "../domain/marketForecast";
 import type { Group, Product } from "../domain/model";
+import { ServiceForecast } from "./ServiceForecast";
 
 const formatter = new Intl.NumberFormat("es-PE", { maximumFractionDigits: 2 });
 const shift = (date: string, days: number) =>
@@ -17,6 +18,7 @@ export function CoordinationPanel({ groups, inputs, products, today, forecastUna
 }) {
   const monday = shift(today, -((new Date(today).getUTCDay() + 6) % 7));
   const nextMonday = shift(monday, 7);
+  const serviceEnabled = !!import.meta.env.VITE_FORECAST_API_URL;
   const forecasts = marketForecasts(products, inputs.filter(row => row.week === monday));
   const opportunities = [
     ...groups.map(group => ({ product: group.product, group })),
@@ -54,16 +56,17 @@ export function CoordinationPanel({ groups, inputs, products, today, forecastUna
               <dl className="grid grid-cols-2 gap-3 text-sm">
                 <div><dt className="muted">Solicitudes pendientes</dt>
                   <dd className="font-semibold">{group ? `${group.total} sacos · ${dateLabel(group.date)}` : "Sin solicitudes pendientes"}</dd></div>
-                <div><dt className="muted">Pronóstico semanal experimental</dt>
-                  <dd className="font-semibold">{forecast ? `${formatter.format(forecast.estimate)} sacos` : "Sin pronóstico para esta fecha"}</dd></div>
+                <div><dt className="muted">{serviceEnabled ? "Referencia registrada al corte" : "Pronóstico semanal experimental"}</dt>
+                  <dd className="font-semibold">{forecast ? `${formatter.format(serviceEnabled ? forecast.estimates.reduce((sum, row) => sum + row.input.features[3], 0) : forecast.estimate)} sacos` : "Sin historial para esta fecha"}</dd></div>
               </dl>
               {forecast && <details className="text-sm">
                 <summary className="cursor-pointer">Cómo se calculó</summary>
                 <p className="mt-2">{forecast.stores} puestos con historial. Corte del lunes {dateLabel(monday)} a las 00:00 en Lima.</p>
                 <p className="mt-1 muted">Referencia al corte: {formatter.format(forecast.estimates.reduce((total, row) => total + row.input.features[3], 0))} sacos registrados para esa semana en los mismos puestos.</p>
-                <p className="mt-1 muted">El árbol usa el volumen de la última semana, los promedios de tres y ocho semanas y los sacos registrados al corte. Modelo {forecast.version}.</p>
+                <p className="mt-1 muted">{serviceEnabled ? "El corte conserva lo registrado antes del lunes. Consulta la estimación orientativa por separado y confirma las cantidades antes de preparar una compra." : `El árbol usa el volumen de la última semana, los promedios de tres y ocho semanas y los sacos registrados al corte. Modelo ${forecast.version}.`}</p>
               </details>}
               <Button className="justify-self-start" variant="outline" onClick={() => onPrepare(product, group)}>{group?.quote ? "Revisar propuesta" : "Preparar propuesta"}</Button>
+              {import.meta.env.VITE_FORECAST_API_URL && <ServiceForecast key={product.id + monday} productId={product.id} week={monday} />}
             </li>
           );
         })}

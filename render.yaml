@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: sumabasto-forecast
+    runtime: python
+    plan: free
+    buildCommand: cd api && pip install -r requirements.lock.txt
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
+      - key: ALLOWED_ORIGINS
+        value: https://merprolima-compras-colectivas.vercel.app
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
