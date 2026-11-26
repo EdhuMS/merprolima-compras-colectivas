@@ -1,6 +1,7 @@
 import { navigate, usePathname } from "../../../app/navigation";
 import { predictProduct } from "../domain/marketForecast";
 import { Recommendations } from "./Recommendations";
+import { ServiceForecast, supportsServiceForecast } from "./ServiceForecast";
 import { recommendPurchases } from "../domain/recommendations";
 import { Modal } from "../../../components/ui/dialog";
 import { ProposalComposer } from "./ProposalComposer";
@@ -566,6 +567,21 @@ export function App({
                           ? [{ product, quantity: Math.round(estimate) }] : [];
                       })}
                       onRegisterSuggested={(productId, quantity) => openForm(undefined, { productId, quantity })} />
+                  )}
+                  {!isCoordinator && import.meta.env.VITE_FORECAST_API_URL && (
+                    <section className="white-panel" aria-labelledby="weekly-forecast">
+                      <h2 id="weekly-forecast" className="text-xl font-semibold">Pronóstico semanal</h2>
+                      <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                        {products.filter(supportsServiceForecast).map(product => (
+                          <div key={product.id + forecastWeek}>
+                            <h3 className="font-semibold">{product.name} {product.brand} · {product.kg} kg</h3>
+                            {inputs?.some(input => input.productId === product.id && input.week === forecastWeek)
+                              ? <ServiceForecast product={product} week={forecastWeek} />
+                              : <p className="text-sm muted">Aún falta historial semanal para este producto.</p>}
+                          </div>
+                        ))}
+                      </div>
+                    </section>
                   )}
                   <section aria-labelledby="open-purchases">
                     <div className="mb-3 flex items-center justify-between gap-3">

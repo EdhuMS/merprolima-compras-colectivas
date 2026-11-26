@@ -2,7 +2,6 @@ import { ArrowRight, Package, ShoppingBasket } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { dateLabel, money } from "../../../lib/utils";
 import type { Group, Product } from "../domain/model";
-import { ServiceForecast } from "./ServiceForecast";
 
 export function Recommendations({ items, onOpen, onRegister, shortages, onRegisterSuggested }: {
   items: { group: Group; quantity: number; reason: string }[];
@@ -11,8 +10,6 @@ export function Recommendations({ items, onOpen, onRegister, shortages, onRegist
   shortages: { product: Product; quantity: number }[];
   onRegisterSuggested: (productId: string, quantity: number) => void;
 }) {
-  const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Lima" });
-  const monday = new Date(Date.parse(today) - ((new Date(today).getUTCDay() + 6) % 7) * 86400000).toISOString().slice(0, 10);
   return (
     <section aria-labelledby="recommendations">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
@@ -34,7 +31,6 @@ export function Recommendations({ items, onOpen, onRegister, shortages, onRegist
               <Button className="mt-auto w-full justify-between sm:w-auto" onClick={() => onOpen(group.key, quantity)}>
                 Ver compra <ArrowRight size={17} />
               </Button>
-              {import.meta.env.VITE_FORECAST_API_URL && <ServiceForecast key={group.product.id + monday} product={group.product} week={monday} />}
             </li>
           ))}
           {shortages.map(({ product, quantity }) => (
@@ -42,7 +38,6 @@ export function Recommendations({ items, onOpen, onRegister, shortages, onRegist
               <h3 className="text-lg font-semibold leading-snug tracking-normal">{product.name} {product.brand} · {product.kg} kg</h3>
               <p className="text-sm leading-relaxed">Reposición probable: {quantity} unidades. Aún no hay una compra abierta.</p>
               <Button className="mt-auto w-full sm:w-auto" variant="outline" onClick={() => onRegisterSuggested(product.id, quantity)}>Registrar necesidad</Button>
-              {import.meta.env.VITE_FORECAST_API_URL && <ServiceForecast key={product.id + monday} product={product} week={monday} />}
             </li>
           ))}
         </ul>

@@ -10,12 +10,16 @@ const presentations = [
   ["Costeño", "Lentejas", 0.5],
 ] as const;
 
+export function supportsServiceForecast(product: Product) {
+  return presentations.some(([brand, name, kg]) =>
+    product.brand === brand && product.name === name && product.kg === kg);
+}
+
 export function ServiceForecast({ product, week }: { product: Product; week: string }) {
   const [result, setResult] = useState<Forecast>();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  if (!presentations.some(([brand, name, kg]) =>
-    product.brand === brand && product.name === name && product.kg === kg)) return null;
+  if (!supportsServiceForecast(product)) return null;
   async function run() {
     setBusy(true); setError(""); setResult(undefined);
     try { setResult(await requestForecast(product.id, week)); }
