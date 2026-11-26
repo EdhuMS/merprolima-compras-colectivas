@@ -1,57 +1,68 @@
-# PROY estado y verificación
+# PROY despliegue y verificación
 
-Fecha: 26/11/2026. Base del checkout: `41e9b37d7840a2287a62a9d6a35b9fb1abe8b04e`.
+Comprobado el 26/11/2026 con autorización del usuario para Render y Vercel.
 
-## Implementado
+## Sistema publicado
 
-- Pipeline candidato Ridge preservado con SHA256 fijo; inferencia solo del artefacto confiable.
-- API autenticada: producto y semana desde cliente; sesión, rol, catálogo e historial resueltos en servidor.
-- Validación por presentación y puesto; cuatro entradas finitas de 0 a 8 sacos. No se extrapola el caso 9.
-- Corte como referencia operativa. Modelo solo orientativo; incertidumbre nula explicada, sin porcentaje inventado.
-- Registro privado de entradas mínimas, salida, versión, hash, origen y timestamp; replay reproducible.
-- React: consulta orientativa opcional por configuración para coordinación y recomendaciones de tienda.
-- Pruebas locales con fixtures: 14 API, 34 frontend, 9 recorridos de Playwright. Compilación verificada.
+- Frontend: https://merprolima-compras-colectivas.vercel.app/
+- API y salud: https://sumabasto-forecast.onrender.com/health
+- Render: sumabasto-forecast, Python 3.12.10, plan Free; servicio srv-dc4b4ebl550s738nu5eg.
+- API desplegada desde 8211979c3b851a3f2f4b8f567bb9be35661f7481, rama feature/proy-inference-20261126.
+- Modelo sumabasto-proy-candidato-v1; SHA256 abc4f18d092a45ea17a8ccc2085ffa3e1bfb2480cccbbb60afb7864a4c19263f.
+- Frontend publicado desde 8202559; deployment Vercel dpl_6ft2Bpj5jscaT4zm3AuxvF3W6TfB, Ready y alias principal confirmado.
+- PR #1 integrado a main. Se preservaron alcance académico y licencia MIT.
 
-## Aplicado en Supabase
+## Flujo publicado
 
-Migraciones remotas `20261126055804_proy_forecast_service` y
-`20261126060234_proy_forecast_reproducible_inputs`, reflejadas en el repositorio.
-Tabla privada con RLS; escritura por RPC solo `service_role`. Se consultaron privilegios efectivos:
-`anon=false`, `authenticated=false`, `service_role=true`; sin acceso directo de cliente.
-La primera escritura se probó en una transacción revertida, con valores sintéticos en contexto simulado.
-No es una predicción comercial ni un flujo autenticado completo en producción.
+React en Vercel solicita producto y semana a FastAPI en Render. La API verifica la sesión en Supabase Auth,
+consulta catálogo e historial según rol, ejecuta el pipeline joblib completo y guarda entradas mínimas,
+salida, origen, versión, hash y timestamp en la tabla privada. El nuevo endpoint no recibe roles ni variables
+individuales desde el navegador y no devuelve la matriz de entradas individuales.
 
-## Arquitectura prevista y estado
+El corte sigue como referencia operativa y Ridge como estimación orientativa. Incertidumbre nula explícita:
+la regresión no tiene probabilidad de clasificación ni intervalo predictivo calibrado.
 
-```mermaid
-flowchart LR
-  U[Usuario autenticado] --> V[React en Vercel histórico]
-  V -->|PROY pendiente de activar| A[FastAPI local verificada - Render pendiente]
-  A --> S[Supabase Auth y RPC según rol]
-  A --> P[Pipeline Ridge joblib]
-  A --> R[Registro privado en Supabase]
-  A -->|Corte e inferencia orientativa| V
-```
+## Evidencias públicas
 
-La nueva API no recibe variables individuales desde el navegador ni las devuelve en su respuesta.
-El frontend APF3 conserva sus consultas históricas existentes. No se afirma que toda la exposición
-histórica de datos haya sido sustituida por el nuevo servicio.
+Se usaron las cuentas de presentación existentes con datos simulados, sin cambiar contraseñas ni crear usuarios.
+No se registraron nuevas necesidades comerciales. Las consultas exitosas dejan predicciones de presentación
+en la tabla privada con origin=simulated.
 
-## Evidencias y límites
+- Salud 200 con versión esperada en tres consultas sucesivas.
+- Tienda y coordinación: 200 para presentaciones dentro del dominio.
+- Sin sesión: 401. Producto ajeno: 403. Campos adicionales inválidos: 422.
+- Historial existente fuera de 0 a 8 sacos: 422. No se alteraron datos para forzar un resultado.
+- CORS permite el dominio principal de Vercel.
+- Dos registros recuperados de Supabase se reprodujeron exactamente con el pipeline y hash versionados.
+- UI publicada comprobada en móvil 390 px y escritorio 1440 px, sin errores de página, desbordamiento
+  horizontal ni superposición de la barra lateral una vez completado el cambio responsive.
+- Fallo de red inducido únicamente en el navegador: la interfaz conserva las solicitudes.
+  No equivale a haber detenido Render ni a una caída real del servidor.
 
-Evidencias locales bajo `output/proy/04. Pruebas y Validación` en el workspace padre.
-La inferencia local incluye carga de artefacto y predicción; excluye red y servicios externos.
-Playwright intercepta Supabase y API con fixtures locales, sin usar cuentas reales.
-Render abre pantalla de inicio de sesión. No se configuraron claves nuevas ni se publicaron secretos.
-Vercel conserva el despliegue principal histórico. La URL de Render y la activación PROY siguen pendientes.
+| Rol | Consulta persistida | Estimación en sacos | Corte |
+|---|---|---:|---:|
+| Tienda | 78d73f9d-e856-475d-b51f-bb6ffa058cc5 | 0,489179 | 0 |
+| Coordinación | 2c02d85c-2caf-430d-a9b3-c6c7e6f826e9 | 1,703179 | 0 |
 
-## Cierre pendiente
+Las capturas de UI corresponden a consultas posteriores y conservan sus propios UUID en browser-report.json.
+Los JSON, capturas y replay están en output/proy/04. Pruebas y Validación/produccion-20261126 del workspace
+padre y en las carpetas canónicas del Proyecto Final.
 
-1. Iniciar sesión en Render, crear servicio desde el código revisado y configurar sus secretos en canal autorizado.
-2. Verificar health, Auth y roles reales; registrar una inferencia con entradas mínimas y reproducirla.
-3. Configurar URL real en Vercel y verificar en el dominio principal, midiendo arranque frío y caliente.
-4. Completar autorización escrita, 30 casos reales reservados y validación con dos comentarios auténticos.
-5. Revisar informe, anexos IA y presentación; grabar respaldo real de máximo tres minutos después del despliegue.
+## Configuración y límites
 
-El séptimo criterio de coherencia no se cumple con cero datos reales. No declarar habilitado el Paso 2b.
-La mejora Ridge frente al árbol es pequeña y no supera la regla al corte.
+Las claves se configuraron en Render, sin incluirlas en el repositorio o la documentación. Vercel contiene
+la URL pública de la API y sus variables publicables existentes. Las migraciones 20261126055804 y
+20261126060234 crean el registro privado con RLS. Solo service_role ejecuta el RPC de escritura;
+anon y authenticated no tienen ese permiso ni acceso directo a la tabla.
+
+El límite externo por consulta de la API es 8 segundos y el del navegador 15 segundos. Render Free puede
+suspenderse por inactividad y tardar al reactivarse. Las latencias registradas son con servicio activo;
+no constituyen SLA, prueba de carga ni medición de arranque en frío. El health check comprueba artefacto
+y configuración, no el flujo autenticado completo.
+
+## Pendientes ajenos al despliegue
+
+Siguen pendientes autorización escrita del cambio de MiPYME, 30 casos reales reservados, validación
+auténtica con dos comentarios y medición del indicador, revisión humana de los anexos IA, video de
+respaldo y ensayo. No se declara cumplimiento del séptimo criterio ni del Paso 2b con cero casos reales.
+Definir conservación, respaldo y límites de consultas antes de ampliar el piloto real.

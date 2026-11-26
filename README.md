@@ -7,9 +7,12 @@ en trayectoria sintética 2028. MAE: regla al corte **0,53125**, árbol corregid
 Ridge **0,95384**. Ridge mejora levemente al árbol corregido y pierde frente a la regla;
 la cantidad operativa sigue siendo la registrada al corte. No hay validación real reservada completada.
 
-Hito 2: [servicio FastAPI y contrato](api/README.md), registro privado en Supabase y consulta
-orientativa en React. Las migraciones de registro se aplicaron; la integración pública Render–Vercel
-todavía requiere configuración y verificación. [Cambios respecto de APF3](CHANGELOG.md).
+Hito 2 desplegado y verificado el 26/11/2026: [API FastAPI en Render](https://sumabasto-forecast.onrender.com/health),
+registro privado en Supabase y consulta orientativa en el [dominio principal de Vercel](https://merprolima-compras-colectivas.vercel.app/).
+Se comprobaron tienda y coordinación con cuentas de presentación y datos simulados, persistencia y replay,
+rechazos 401/403/422 y fallo de red inducido en el navegador. Esto acredita integración técnica pública;
+la validación comercial y los 30 casos reales siguen pendientes.
+[Contrato](api/README.md) · [Evidencia](docs/proy-integracion.md) · [Cambios](CHANGELOG.md).
 
 Hito 3: `npm run test:e2e` ejecuta Playwright con Chrome instalado en móvil, tablet y escritorio.
 Los recorridos interceptan servicios con fixtures locales, sin representar actividad real de la MiPYME.
