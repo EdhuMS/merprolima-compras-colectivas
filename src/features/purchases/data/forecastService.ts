@@ -4,7 +4,9 @@ import { requireSupabase } from "../../../infrastructure/supabase/client";
 const nonnegative = z.number().finite().nonnegative();
 export const forecastResponseSchema = z.object({
   schema_version: z.literal(1), request_id: z.uuid(), product_id: z.uuid(),
-  week: z.iso.date(), model_version: z.literal("sumabasto-proy-candidato-v1"),
+  week: z.iso.date(), model_version: z.enum([
+    "sumabasto-proy-catalogo-24-meses-v1", "sumabasto-proy-candidato-v1",
+  ]),
   generated_at: z.iso.datetime({ offset: true }), data_origin: z.enum(["real", "simulated"]),
   status: z.enum(["candidate", "fallback"]), baseline: nonnegative,
   estimate: nonnegative.nullable(), operational_quantity: nonnegative,
@@ -30,7 +32,9 @@ export async function requestForecast(productId: string, week: string): Promise<
   if (!response.ok) throw new Error(response.status === 422
     ? "El historial no cumple el dominio de la estimación."
     : "La estimación no está disponible. Revisa las solicitudes vigentes.");
-  const result = forecastResponseSchema.parse(await response.json());
+  const parsed = forecastResponseSchema.safeParse(await response.json());
+  if (!parsed.success) throw new Error("La respuesta del pronóstico no es válida.");
+  const result = parsed.data;
   const age = Date.now() - Date.parse(result.generated_at);
   if (result.product_id !== productId || result.week !== week || age > 120000 || age < -60000)
     throw new Error("La respuesta no corresponde a una consulta vigente.");

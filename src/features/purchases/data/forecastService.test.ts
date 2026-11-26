@@ -4,7 +4,7 @@ import { forecastResponseSchema } from "./forecastService";
 const result = {
   schema_version: 1, request_id: "11111111-1111-4111-8111-111111111111",
   product_id: "22222222-2222-4222-8222-222222222222", week: "2026-11-23",
-  model_version: "sumabasto-proy-candidato-v1", generated_at: "2026-11-26T10:00:00Z",
+  model_version: "sumabasto-proy-catalogo-24-meses-v1", generated_at: "2026-11-26T10:00:00Z",
   data_origin: "simulated", status: "candidate", baseline: 5, estimate: 4.3,
   operational_quantity: 5, coverage: 1, uncertainty: null,
   uncertainty_reason: "Sin calibración", persisted: true,
