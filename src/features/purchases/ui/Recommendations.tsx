@@ -25,24 +25,24 @@ export function Recommendations({ items, onOpen, onRegister, shortages, onRegist
             <li key={group.key} className="flex flex-col items-start rounded-2xl border border-[#dce7dc] bg-white p-5 sm:p-6">
               <span className="mb-4 rounded-xl bg-[#e6f2e9] p-3 text-[#24533c]"><Package size={25} /></span>
               <h3 className="text-xl font-semibold">{group.product.name} {group.product.brand}</h3>
-              <p className="mt-1 text-sm muted">{group.product.kg} kg por saco · {reason}</p>
+              <p className="mt-1 text-sm muted">{group.product.kg} kg por unidad · {reason}</p>
               <dl className="my-5 grid w-full grid-cols-2 gap-3 border-y border-[#e4ebe2] py-4 text-sm">
-                <div><dt className="muted">Cantidad sugerida</dt><dd className="text-lg font-semibold">{quantity} sacos</dd></div>
+                <div><dt className="muted">Cantidad sugerida</dt><dd className="text-lg font-semibold">{quantity} unidades</dd></div>
                 <div><dt className="muted">{group.mode === "delivery" ? "Entrega" : "Recojo"}</dt><dd className="text-lg font-semibold">{dateLabel(group.date)}</dd></div>
               </dl>
-              {group.quote && <p className="mb-4 text-sm">{money(group.quote.collective)} por saco al alcanzar el mínimo</p>}
+              {group.quote && <p className="mb-4 text-sm">{money(group.quote.collective)} por unidad al alcanzar el mínimo</p>}
               <Button className="mt-auto w-full justify-between sm:w-auto" onClick={() => onOpen(group.key, quantity)}>
                 Ver compra <ArrowRight size={17} />
               </Button>
-              {import.meta.env.VITE_FORECAST_API_URL && <ServiceForecast key={group.product.id + monday} productId={group.product.id} week={monday} />}
+              {import.meta.env.VITE_FORECAST_API_URL && <ServiceForecast key={group.product.id + monday} product={group.product} week={monday} />}
             </li>
           ))}
           {shortages.map(({ product, quantity }) => (
             <li className="flex min-w-0 flex-col items-start gap-4 rounded-2xl border border-[#dce7dc] bg-white p-5 sm:p-6" key={product.id}>
               <h3 className="text-lg font-semibold leading-snug tracking-normal">{product.name} {product.brand} · {product.kg} kg</h3>
-              <p className="text-sm leading-relaxed">Reposición probable: {quantity} sacos. Aún no hay una compra abierta.</p>
+              <p className="text-sm leading-relaxed">Reposición probable: {quantity} unidades. Aún no hay una compra abierta.</p>
               <Button className="mt-auto w-full sm:w-auto" variant="outline" onClick={() => onRegisterSuggested(product.id, quantity)}>Registrar necesidad</Button>
-              {import.meta.env.VITE_FORECAST_API_URL && <ServiceForecast key={product.id + monday} productId={product.id} week={monday} />}
+              {import.meta.env.VITE_FORECAST_API_URL && <ServiceForecast key={product.id + monday} product={product} week={monday} />}
             </li>
           ))}
         </ul>

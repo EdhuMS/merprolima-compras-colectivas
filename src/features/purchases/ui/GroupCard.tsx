@@ -61,9 +61,9 @@ export function GroupCard({
           <span className="text-3xl font-semibold tracking-tight">
             {g.total}
           </span>
-          <span className="ml-2 text-sm muted">sacos reunidos</span>
+          <span className="ml-2 text-sm muted">unidades reunidos</span>
         </div>
-        <span className="text-xs muted">Meta: {g.quote?.min ?? "—"} sacos</span>
+        <span className="text-xs muted">Meta: {g.quote?.min ?? "—"} unidades</span>
       </div>
       <div className="progress mt-3">
         <div

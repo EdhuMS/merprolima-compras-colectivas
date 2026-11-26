@@ -76,7 +76,7 @@ export function ProposalDetail({
   const confirmationDescription =
     decision === "declined"
       ? "Dejarás de participar en esta propuesta. Tu necesidad de reposición se conservará."
-      : `${ownQty || qty} sacos de ${group.product.name} · ${group.product.brand}, para el ${dateLabel(group.date)} ${costs.eligible ? "Confirmarás las condiciones mostradas." : "El pedido quedará pendiente de confirmación mientras se completa el volumen o la cotización."}`;
+      : `${ownQty || qty} unidades de ${group.product.name} · ${group.product.brand}, para el ${dateLabel(group.date)} ${costs.eligible ? "Confirmarás las condiciones mostradas." : "El pedido quedará pendiente de confirmación mientras se completa el volumen o la cotización."}`;
   return (
     <Modal
       open
@@ -123,7 +123,7 @@ export function ProposalDetail({
             <div className="detail-grid">
               <div>
                 <small>Volumen solicitado</small>
-                <strong>{group.total} sacos</strong>
+                <strong>{group.total} unidades</strong>
               </div>
               <div>
                 <small>
@@ -131,7 +131,7 @@ export function ProposalDetail({
                 </small>
                 <strong>
                   {coordinator ? (group.quote?.min ?? "Por definir") : ownQty}{" "}
-                  sacos
+                  unidades
                 </strong>
               </div>
               <div>
@@ -162,7 +162,7 @@ export function ProposalDetail({
               <>
                 {!ownQty && (
                   <label className="form mt-5">
-                    ¿Cuántos sacos quieres comprar?
+                    ¿Cuántos unidades quieres comprar?
                     <input
                       type="number"
                       min="1"

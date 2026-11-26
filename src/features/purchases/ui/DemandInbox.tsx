@@ -104,7 +104,7 @@ export function DemandInbox({
                   <div>
                     <small className="muted">Demanda pendiente</small>
                     <strong className="block text-lg mt-1">
-                      {group.total} sacos
+                      {group.total} unidades
                     </strong>
                   </div>
                   <div>

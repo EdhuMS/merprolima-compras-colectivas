@@ -695,7 +695,7 @@ export function App({
                                     {p.brand} · {p.kg} kg
                                   </p>
                                 </td>
-                                <td>{n.qty} sacos</td>
+                                <td>{n.qty} unidades</td>
                                 <td>{dateLabel(n.date)}</td>
                                 <td>
                                   {n.mode === "delivery"

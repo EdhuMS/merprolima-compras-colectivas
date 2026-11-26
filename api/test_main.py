@@ -16,9 +16,10 @@ client = TestClient(main.app)
 
 
 def test_pipeline_matches_frozen_holdout():
-    data = pd.read_csv(main.RESULTS / "prueba_simulada_2028.csv")
+    data = pd.read_csv(main.ROOT / "ml/proy/resultados/prueba_simulada_2028.csv")
     for _, row in data.iloc[:32].iterrows():
-        baseline, estimate, status = main.infer(row.producto, [{"features": [row[c] for c in main.FIELDS]}])
+        baseline, estimate, status = main.infer(row.producto, [{"features": [row[c] for c in main.FIELDS]}],
+                                                legacy=True)
         assert estimate == pytest.approx(row.prediccion, abs=1e-6)
         assert baseline == row.al_corte
         assert status == "candidate"
@@ -28,13 +29,13 @@ def test_pipeline_matches_frozen_holdout():
                                       [True, 0, 0, 0], [0, 0, 0], [0, 0, 0, 1.5]])
 def test_out_of_domain(features):
     with pytest.raises(HTTPException) as error:
-        main.infer(main.CODES[0], [{"features": features}])
+        main.infer("CARTAVIO-50KG", [{"features": features}])
     assert error.value.status_code == 422
 
 
 def test_no_history():
     with pytest.raises(HTTPException):
-        main.infer(main.CODES[0], [])
+        main.infer("CARTAVIO-50KG", [])
 
 
 def test_authentication_required():

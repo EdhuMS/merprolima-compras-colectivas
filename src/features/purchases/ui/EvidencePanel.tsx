@@ -41,7 +41,7 @@ export function EvidencePanel({
         <h2 className="mt-4 text-xl font-semibold">Resumen por periodo</h2>
         <p className="muted mt-2">
           {isCoordinator
-            ? "Consulta los sacos solicitados y el estado de las propuestas para planificar el abastecimiento."
+            ? "Consulta los unidades solicitados y el estado de las propuestas para planificar el abastecimiento."
             : "Consulta tus solicitudes y el estado de tu participación para llevar un registro de tus reposiciones."}
         </p>
         <div className="form mt-5">

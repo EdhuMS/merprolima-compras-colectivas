@@ -21,9 +21,9 @@ SEED = 42
 FEATURES = ["producto"] + CAMPOS
 Y = "sacos_al_cierre"
 VERSION = "sumabasto-proy-candidato-v1"
-def prep(model):
+def prep(model, productos=PRODUCTOS):
     return Pipeline([("preprocesamiento", ColumnTransformer([
-        ("producto", OneHotEncoder(categories=[PRODUCTOS], handle_unknown="error", sparse_output=False), ["producto"]),
+        ("producto", OneHotEncoder(categories=[productos], handle_unknown="error", sparse_output=False), ["producto"]),
         ("volumen", StandardScaler(), CAMPOS)])), ("modelo", model)])
 def predict(model, data):
     return np.maximum(0, model.predict(data[FEATURES]))

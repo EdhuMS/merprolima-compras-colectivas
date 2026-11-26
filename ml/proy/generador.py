@@ -13,15 +13,16 @@ SEMANAS = 156
 VERSION = "sumabasto-apf3-calibrado-v2"
 CAMPOS = ["ultima", "media_3", "media_8", "al_corte"]
 
-def simular(semilla, anticipacion=.45, retiro=.06, pesos=(1,1,1,1)):
+def simular(semilla, anticipacion=.45, retiro=.06, pesos=(1,1,1,1), *,
+            productos=PRODUCTOS, inicio=INICIO, semanas=SEMANAS):
     rng = Random(semilla)
     eventos = []
     cierres, iniciales = defaultdict(int), defaultdict(int)
     for puesto, (min_sacos, max_sacos, min_dias, max_dias) in enumerate(FICHAS):
         dia = rng.randrange(max_dias)
-        while dia < SEMANAS * 7:
+        while dia < semanas * 7:
             semana = dia // 7
-            producto = rng.choices(range(4), weights=pesos, k=1)[0]
+            producto = rng.choices(range(len(productos)), weights=pesos, k=1)[0]
             sacos = rng.randint(min_sacos, max_sacos)
             anticipado = rng.random() < anticipacion
             decide_retiro = rng.random()
@@ -29,18 +30,18 @@ def simular(semilla, anticipacion=.45, retiro=.06, pesos=(1,1,1,1)):
             clave = (puesto, producto, semana)
             iniciales[clave] += sacos if anticipado else 0
             cierres[clave] += 0 if retirado else sacos
-            eventos.append({"puesto": f"P{puesto+1:02}", "producto": PRODUCTOS[producto],
-                            "fecha_objetivo": INICIO + timedelta(days=dia),
-                            "semana": INICIO + timedelta(weeks=semana), "sacos": sacos,
+            eventos.append({"puesto": f"P{puesto+1:02}", "producto": productos[producto],
+                            "fecha_objetivo": inicio + timedelta(days=dia),
+                            "semana": inicio + timedelta(weeks=semana), "sacos": sacos,
                             "al_corte": anticipado, "retirado_antes_del_cierre": retirado,
                             "origen": "simulado"})
             dia += rng.randint(min_dias, max_dias)
     filas = []
-    for semana in range(8, SEMANAS):
-        for producto, nombre in enumerate(PRODUCTOS):
+    for semana in range(8, semanas):
+        for producto, nombre in enumerate(productos):
             for puesto in range(8):
                 historia = [cierres[puesto, producto, s] for s in range(semana-8, semana)]
-                filas.append({"semana": INICIO + timedelta(weeks=semana), "producto": nombre,
+                filas.append({"semana": inicio + timedelta(weeks=semana), "producto": nombre,
                               "puesto": f"P{puesto+1:02}", "ultima": historia[-1],
                               "media_3": sum(historia[-3:])/3, "media_8": sum(historia)/8,
                               "al_corte": iniciales[puesto, producto, semana],

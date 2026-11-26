@@ -129,7 +129,7 @@ export function PurchaseDialogs({
           </label>
           <div className="grid grid-cols-2 gap-4">
             <label>
-              Cantidad de sacos
+              Cantidad de unidades
               <input
                 type="number"
                 min="1"
@@ -215,7 +215,7 @@ export function PurchaseDialogs({
               [
                 { key: "individual", label: "Precio individual S/" },
                 { key: "collective", label: "Precio colectivo S/" },
-                { key: "min", label: "Mínimo de sacos" },
+                { key: "min", label: "Mínimo de unidades" },
                 { key: "transport", label: "Transporte total S/" },
                 { key: "distribution", label: "Reparto total S/" },
                 {

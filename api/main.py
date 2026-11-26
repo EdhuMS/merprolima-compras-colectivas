@@ -21,13 +21,17 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, ConfigDict, field_validator
 
 ROOT = Path(__file__).resolve().parents[1]
-RESULTS = ROOT / "ml/proy/resultados"
-VERSION = "sumabasto-proy-candidato-v1"
-ARTIFACT_SHA256 = "abc4f18d092a45ea17a8ccc2085ffa3e1bfb2480cccbbb60afb7864a4c19263f"
+RESULTS = ROOT / "ml/proy/catalogo_revisado"
+VERSION = "sumabasto-proy-catalogo-24-meses-v1"
+ARTIFACT_SHA256 = "a5c928291a3d13f9f29b1f9263031dbf31d35ddd6243fdc5f59b8f0d69a8e021"
+LEGACY_SHA256 = "abc4f18d092a45ea17a8ccc2085ffa3e1bfb2480cccbbb60afb7864a4c19263f"
 FIELDS = ["ultima", "media_3", "media_8", "al_corte"]
-CODES = ["CARTAVIO-50KG", "COSTENO-EXTRA-50KG", "FARAON-AZUL-50KG", "PARAMONGA-RUBIA-50KG"]
-NAMES = [("cartavio", "azucar rubia"), ("costeno", "arroz extra"),
-         ("faraon azul", "arroz extra anejo"), ("paramonga", "azucar rubia")]
+PRESENTATIONS = {
+    ("cartavio", "azucar rubia", 50): "CARTAVIO-50KG",
+    ("costeno", "arroz extra", 50): "COSTENO-EXTRA-50KG",
+    ("don vittorio", "espagueti", 0.5): "DON-VITTORIO-FIDEOS-500G",
+    ("costeno", "lentejas", 0.5): "COSTENO-LENTEJAS-500G",
+}
 app = FastAPI(title="Sumabasto forecasts", version="1.0.0", docs_url=None, redoc_url=None)
 app.add_middleware(CORSMiddleware, allow_origins=os.getenv(
     "ALLOWED_ORIGINS", "http://127.0.0.1:5173").split(","),
@@ -120,11 +124,19 @@ async def current_user(credentials: Annotated[HTTPAuthorizationCredentials | Non
     return credentials.credentials, str(UUID(user["id"]))
 
 
-def load_pipeline():
-    metadata = json.loads((RESULTS / "resultados.json").read_text(encoding="utf-8"))
-    artifact = RESULTS / "modelo_candidato.joblib"
-    if (metadata["version"] != VERSION or metadata["sha256"] != ARTIFACT_SHA256
-            or hashlib.sha256(artifact.read_bytes()).hexdigest() != ARTIFACT_SHA256):
+def load_pipeline(*, legacy=False):
+    if legacy:
+        directory = ROOT / "ml/proy/resultados"
+        version, digest = "sumabasto-proy-candidato-v1", LEGACY_SHA256
+        metadata_name, artifact_name = "resultados.json", "modelo_candidato.joblib"
+    else:
+        directory = RESULTS
+        version, digest = VERSION, ARTIFACT_SHA256
+        metadata_name, artifact_name = "evaluacion.json", "modelo_ridge.joblib"
+    metadata = json.loads((directory / metadata_name).read_text(encoding="utf-8"))
+    artifact = directory / artifact_name
+    if (metadata["version"] != version or metadata["sha256"] != digest
+            or hashlib.sha256(artifact.read_bytes()).hexdigest() != digest):
         raise ValueError("Artefacto o versión no verificados")
     # Only the trusted repository artifact is deserialized, never an uploaded joblib.
     return joblib.load(artifact)
@@ -136,22 +148,22 @@ def normalize(value):
 
 
 def product_code(product):
-    pair = normalize(product["brand"]), normalize(product["name"])
-    if product.get("kg") != 50 or pair not in NAMES:
+    key = normalize(product["brand"]), normalize(product["name"]), product.get("kg")
+    if key not in PRESENTATIONS:
         raise HTTPException(422, "Presentación fuera del dominio del modelo.")
-    return CODES[NAMES.index(pair)]
+    return PRESENTATIONS[key]
 
 
-def infer(code, rows):
+def infer(code, rows, *, legacy=False):
     features = [row["features"] for row in rows]
     if not features or any(len(values) != 4 or any(
             isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v)
             or v < 0 or v > 8 for v in values) or
             any(values[i] != int(values[i]) for i in (0, 3)) for values in features):
-        raise HTTPException(422, "Historial insuficiente o fuera del dominio de 0 a 8 sacos por puesto.")
+        raise HTTPException(422, "Historial insuficiente o fuera del dominio de 0 a 8 unidades por puesto.")
     baseline = sum(values[3] for values in features)
     try:
-        pipeline = load_pipeline()
+        pipeline = load_pipeline(legacy=True) if legacy else load_pipeline()
         frame = pd.DataFrame([dict(zip(FIELDS, values), producto=code) for values in features])
         predictions = pipeline.predict(frame[["producto"] + FIELDS])
         if not all(math.isfinite(float(value)) for value in predictions):

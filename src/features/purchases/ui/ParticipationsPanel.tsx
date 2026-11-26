@@ -131,7 +131,7 @@ export function ParticipationsPanel({
                   {group.needs
                     .filter((n) => n.stall === stall)
                     .reduce((sum, n) => sum + n.qty, 0)}{" "}
-                  sacos · Volumen reunido: {group.total} sacos
+                  unidades · Volumen reunido: {group.total} unidades
                 </p>
                 {!historical && <Button
                   size="sm"
