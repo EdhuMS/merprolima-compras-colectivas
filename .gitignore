@@ -11,3 +11,8 @@ dist/
 !.env.example
 *.tsbuildinfo
 supabase/.temp/
+__pycache__/
+*.pyc
+.pytest_cache/
+playwright-report/
+test-results/
